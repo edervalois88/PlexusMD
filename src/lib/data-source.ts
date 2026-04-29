@@ -8,116 +8,116 @@ import { DataSource, Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, U
 @Entity("Organization")
 export class OrganizationEntity {
   @PrimaryGeneratedColumn("uuid")
-  id: string;
+  id!: string;
 
   @Column({ type: "text" })
-  name: string;
+  name!: string;
 
   @Column({ type: "text", unique: true })
-  slug: string;
+  slug!: string;
 
   @Column({ type: "text", nullable: true })
-  stripe_connect_id: string | null;
+  stripe_connect_id!: string | null;
 
   @Column({ type: "jsonb", default: "{}" })
-  settings_json: any;
+  settings_json!: any;
 
   @Column({ type: "int", default: 0 })
-  ai_usage_count: number;
+  ai_usage_count!: number;
 
   @Column({ type: "boolean", default: true })
-  is_active: boolean;
+  is_active!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => UserEntity, user => user.organization)
-  users: UserEntity[];
+  users!: UserEntity[];
 }
 
 @Entity("User")
 export class UserEntity {
   @PrimaryGeneratedColumn("uuid")
-  id: string;
+  id!: string;
 
   @Column({ type: "text", unique: true })
-  email: string;
+  email!: string;
 
   @Column({ type: "text", default: "DOCTOR" })
-  role: string;
+  role!: string;
 
   @Column({ type: "text" })
-  organization_id: string;
+  organization_id!: string;
 
   @ManyToOne(() => OrganizationEntity, org => org.users, { onDelete: "CASCADE" })
   @JoinColumn({ name: "organization_id" })
-  organization: OrganizationEntity;
+  organization!: OrganizationEntity;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 @Entity("Patient")
 export class PatientEntity {
   @PrimaryGeneratedColumn("uuid")
-  id: string;
+  id!: string;
 
   @Column({ type: "text" })
-  organization_id: string;
+  organization_id!: string;
 
   @Column({ type: "text" })
-  full_name: string;
+  full_name!: string;
 
   @Column({ type: "text", nullable: true })
-  curp: string | null;
+  curp!: string | null;
 
   @Column({ type: "timestamp", nullable: true })
-  birth_date: Date | null;
+  birth_date!: Date | null;
 
   @Column({ type: "jsonb", default: "{}" })
-  medical_history_json: any;
+  medical_history_json!: any;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 @Entity("Appointment")
 export class AppointmentEntity {
   @PrimaryGeneratedColumn("uuid")
-  id: string;
+  id!: string;
 
   @Column({ type: "text" })
-  organization_id: string;
+  organization_id!: string;
 
   @Column({ type: "text" })
-  doctor_id: string;
+  doctor_id!: string;
 
   @Column({ type: "text" })
-  patient_id: string;
+  patient_id!: string;
 
   @Column({ type: "timestamp" })
-  start_time: Date;
+  start_time!: Date;
 
   @Column({ type: "text", default: "SCHEDULED" })
-  status: string;
+  status!: string;
 
   @Column({ type: "text", default: "PENDING" })
-  payment_status: string;
+  payment_status!: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 // ==========================================
