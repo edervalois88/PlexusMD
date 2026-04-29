@@ -15,6 +15,7 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
+    // Usamos la instancia importada 'stripe' que ya tiene la apiVersion y la clave configuradas.
     event = stripe.webhooks.constructEvent(
       body,
       signature,
