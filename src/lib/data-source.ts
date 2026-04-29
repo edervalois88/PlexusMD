@@ -3,14 +3,12 @@ import { DataSource, Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, U
 
 // ==========================================
 // Entidades Básicas (Refactorización TypeORM)
-// Trigger redeploy
 // ==========================================
 
 @Entity("Organization")
 export class OrganizationEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
-...
 
   @Column({ type: "text" })
   name!: string;
