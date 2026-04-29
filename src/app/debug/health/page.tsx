@@ -3,8 +3,15 @@
 import { useState, useEffect } from "react";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
+type HealthStatus = {
+  postgres: { ok: boolean; latency: string };
+  redisKV: { ok: boolean; latency: string };
+  stripeAPI: { ok: boolean; latency: string };
+  geminiAPI: { ok: boolean; latency: string };
+};
+
 export default function DebugHealthPage() {
-  const [status, setStatus] = useState<any>(null);
+  const [status, setStatus] = useState<HealthStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,7 +38,7 @@ export default function DebugHealthPage() {
     checkSystems();
   }, []);
 
-  if (loading) {
+  if (loading || !status) {
     return (
       <div className="min-h-screen bg-[#1E293B] text-white flex flex-col items-center justify-center font-mono">
         <Loader2 className="animate-spin text-[#14B8A6] mb-4" size={48} />
@@ -62,7 +69,7 @@ export default function DebugHealthPage() {
   );
 }
 
-function HealthItem({ name, data }: { name: string, data: any }) {
+function HealthItem({ name, data }: { name: string; data: { ok: boolean; latency: string } }) {
   return (
     <div className="flex items-center justify-between p-4 bg-slate-800 rounded-xl border border-slate-700">
       <div className="flex items-center gap-3">

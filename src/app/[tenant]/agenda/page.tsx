@@ -3,13 +3,13 @@
 import { useState } from "react";
 import dayjs from "dayjs";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Calendar as CalendarIcon, Clock, User } from "lucide-react";
+import { Plus, X, Calendar as CalendarIcon, User } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { use } from "react";
 
 export default function AgendaPage({ params }: { params: Promise<{ tenant: string }> }) {
-  const resolvedParams = use(params);
+  use(params);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());

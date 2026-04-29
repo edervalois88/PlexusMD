@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Users, Activity, UserPlus, Settings } from "lucide-react";
 
-export default function OrgAdminDashboard({ params }: { params: { tenant: string } }) {
+export default function OrgAdminDashboard() {
   // Mock Data (En producción vendría de Supabase)
   const stats = {
     totalDoctors: 4,

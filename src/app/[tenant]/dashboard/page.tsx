@@ -2,11 +2,21 @@ import { Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import NewsFeed from "@/components/dashboard/NewsFeed";
-import { getAppointmentsForToday } from "@/actions/appointment";
+import { getDailyAppointmentsForTenant } from "@/actions/appointment";
 
-export default async function DoctorDashboard({ params }: { params: { tenant: string } }) {
+type DashboardAppointment = {
+  id: string;
+  start_time: Date;
+  status: string;
+  patient_id: string;
+  patient?: {
+    full_name?: string;
+  };
+};
+
+export default async function DoctorDashboard({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
-  const appointments = await getAppointmentsForToday(tenant);
+  const appointments = await getDailyAppointmentsForTenant(tenant, new Date()) as DashboardAppointment[];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
@@ -14,14 +24,14 @@ export default async function DoctorDashboard({ params }: { params: { tenant: st
       <div className="lg:col-span-2 space-y-6">
         <h2 className="text-2xl font-bold text-slate-800">Citas de Hoy</h2>
         <div className="space-y-4">
-          {appointments.map((appt: any) => (
+          {appointments.map((appt) => (
             <div
               key={appt.id}
               className="group border-l-4 border-slate-300 hover:border-teal-500 transition-all bg-white p-4 rounded-r-lg shadow-sm"
             >
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-semibold text-lg">{appt.patient.full_name}</p>
+                  <p className="font-semibold text-lg">{appt.patient?.full_name ?? `Paciente ${appt.patient_id.slice(0, 8)}`}</p>
                   <p className="text-sm text-slate-500">{new Date(appt.start_time).toLocaleTimeString()}</p>
                 </div>
                 <span className="px-3 py-1 bg-slate-100 rounded-full text-xs font-medium">{appt.status}</span>

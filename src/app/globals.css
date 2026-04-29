@@ -51,6 +51,8 @@
 :root {
   --background: #F9FAFB;
   --foreground: #1E293B;
+  --font-sans: "Avenir Next", "Segoe UI", sans-serif;
+  --font-geist-mono: "SFMono-Regular", "Cascadia Code", "Liberation Mono", monospace;
   --card: #FFFFFF;
   --card-foreground: #1E293B;
   --popover: #FFFFFF;

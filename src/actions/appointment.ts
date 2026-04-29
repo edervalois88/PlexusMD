@@ -22,9 +22,10 @@ export async function getDailyAppointmentsForTenant(tenantSlug: string, date: Da
     const appointments = await AppointmentRepository.findDailyAppointmentsForTenant(organization.id, date);
 
     return appointments;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Manejo de Error Global
-    const errorId = logger.error("Error al obtener la agenda diaria", { tenantSlug, date, error: error.message });
+    const message = error instanceof Error ? error.message : String(error);
+    const errorId = logger.error("Error al obtener la agenda diaria", { tenantSlug, date, error: message });
     throw new Error(`Ocurrió un error interno. Código de referencia: ${errorId}`);
   }
 }

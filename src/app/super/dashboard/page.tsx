@@ -1,9 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Users, Activity, DollarSign, ShieldAlert } from "lucide-react";
+
+const getDemoTokenUsage = (index: number, isWeekend: boolean) => {
+  const seed = (index + 1) * 9301 + 49297;
+  const normalized = (seed % 233280) / 233280;
+  return isWeekend ? Math.floor(normalized * 500) + 200 : Math.floor(normalized * 3000) + 1500;
+};
 
 export default function SuperAdminDashboard() {
   // Mock Data (En producción vendría de una consulta a Supabase)
@@ -20,7 +25,7 @@ export default function SuperAdminDashboard() {
     const isWeekend = d.getDay() === 0 || d.getDay() === 6;
     return {
       name: `${d.getDate()}/${d.getMonth() + 1}`,
-      tokens: isWeekend ? Math.floor(Math.random() * 500) + 200 : Math.floor(Math.random() * 3000) + 1500,
+      tokens: getDemoTokenUsage(i, isWeekend),
     };
   });
 

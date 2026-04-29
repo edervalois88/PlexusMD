@@ -13,7 +13,7 @@ const systemInstruction = `Actúas como un asistente médico de élite. Tu objet
 3. Sugerencia de preguntas clave para el médico.
 No diagnostiques, solo asiste. Por favor, formatea la respuesta en una lista de puntos (bullet points) clara y elegante.`;
 
-export async function analyzePatientInsight(patientHistory: any, reason: string, organizationId?: string) {
+export async function analyzePatientInsight(patientHistory: unknown, reason: string, organizationId?: string) {
   // Sanitización de Datos (Zod)
   const safeReason = z.string().min(5).max(1000).parse(reason);
 
@@ -51,6 +51,7 @@ ${JSON.stringify(patientHistory, null, 2)}`;
 }
 
 export async function generateClinicalNews(tenant: string) {
+  void tenant;
   // Simulando llamada a IA
   await new Promise((resolve) => setTimeout(resolve, 2000));
   

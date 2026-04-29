@@ -35,9 +35,9 @@ export async function createStripeConnectLink(organizationId: string) {
     });
 
     return { url: accountLink.url };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating Stripe Connect Link:", error);
-    throw new Error(error.message);
+    throw new Error(error instanceof Error ? error.message : "Error creating Stripe Connect Link");
   }
 }
 
@@ -86,8 +86,8 @@ export async function createCheckoutSession(appointmentId: string) {
     });
 
     return { url: session.url };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating Checkout Session:", error);
-    throw new Error(error.message);
+    throw new Error(error instanceof Error ? error.message : "Error creating Checkout Session");
   }
 }

@@ -19,7 +19,7 @@ test.describe('Multi-tenancy and Isolation Smoke Tests', () => {
     // En nuestro middleware actual, configuramos KV para que bloquee y reescriba a /suspendido
     
     // (Nota: En un entorno CI real, KV debe estar mockeado o conectado a una base de pruebas)
-    const response = await page.goto('http://clinica-suspendida.localhost:3000/');
+    await page.goto('http://clinica-suspendida.localhost:3000/');
     
     // Verificar que fuimos redirigidos/reescritos a la página de suspensión
     // Dependiendo de tu implementación de Next.js, verificamos el contenido de la página:

@@ -26,8 +26,9 @@ export async function getPatientForTenant(tenantSlug: string, patientId: string)
     }
 
     return patient;
-  } catch (error: any) {
-    logger.error("Error validando paciente", { tenantSlug, patientId, error: error.message });
-    throw new Error(error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error("Error validando paciente", { tenantSlug, patientId, error: message });
+    throw new Error(message);
   }
 }

@@ -1,5 +1,15 @@
 import "reflect-metadata";
-import { DataSource, Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  DataSource,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
 
 // ==========================================
 // Entidades Básicas (Refactorización TypeORM)
@@ -20,7 +30,7 @@ export class OrganizationEntity {
   stripe_connect_id!: string | null;
 
   @Column({ type: "jsonb", default: "{}" })
-  settings_json!: any;
+  settings_json!: Record<string, unknown>;
 
   @Column({ type: "int", default: 0 })
   ai_usage_count!: number;
@@ -81,7 +91,7 @@ export class PatientEntity {
   birth_date!: Date | null;
 
   @Column({ type: "jsonb", default: "{}" })
-  medical_history_json!: any;
+  medical_history_json!: Record<string, unknown>;
 
   @CreateDateColumn()
   createdAt!: Date;
@@ -124,24 +134,56 @@ export class AppointmentEntity {
 // Configuración del DataSource optimizado
 // ==========================================
 
-export const AppDataSource = new DataSource({
-  type: "postgres",
-  url: process.env.DATABASE_URL,
-  // Para conexión Pooling en Supabase / Vercel (si se usa Supavisor / PgBouncer)
-  extra: {
-    max: 20,          // Max size of the connection pool
-    connectionTimeoutMillis: 5000,
-  },
-  synchronize: false, // ¡IMPORTANTE! Mantener compatibilidad con Prisma
-  logging: process.env.NODE_ENV !== "production",
-  entities: [OrganizationEntity, UserEntity, PatientEntity, AppointmentEntity],
-  migrations: [],
-  subscribers: [],
-});
+type GlobalWithTypeORM = typeof globalThis & {
+  plexusDataSource?: DataSource;
+  plexusDataSourceInitializing?: Promise<DataSource>;
+};
+
+const globalForTypeORM = globalThis as GlobalWithTypeORM;
+
+const getPostgresUrl = () => {
+  const postgresUrl = process.env.POSTGRES_URL;
+
+  if (!postgresUrl) {
+    throw new Error("POSTGRES_URL is required to initialize the database connection.");
+  }
+
+  return postgresUrl;
+};
+
+const createDataSource = () =>
+  new DataSource({
+    type: "postgres",
+    url: getPostgresUrl(),
+    extra: {
+      max: Number(process.env.POSTGRES_POOL_MAX ?? 5),
+      idleTimeoutMillis: Number(process.env.POSTGRES_IDLE_TIMEOUT_MS ?? 10_000),
+      connectionTimeoutMillis: Number(process.env.POSTGRES_CONNECTION_TIMEOUT_MS ?? 5_000),
+      allowExitOnIdle: true,
+    },
+    synchronize: false,
+    logging: process.env.NODE_ENV !== "production",
+    entities: [OrganizationEntity, UserEntity, PatientEntity, AppointmentEntity],
+    migrations: [],
+    subscribers: [],
+  });
 
 export const getDataSource = async () => {
-  if (!AppDataSource.isInitialized) {
-    await AppDataSource.initialize();
+  if (globalForTypeORM.plexusDataSource?.isInitialized) {
+    return globalForTypeORM.plexusDataSource;
   }
-  return AppDataSource;
+
+  if (!globalForTypeORM.plexusDataSource) {
+    globalForTypeORM.plexusDataSource = createDataSource();
+  }
+
+  if (!globalForTypeORM.plexusDataSourceInitializing) {
+    globalForTypeORM.plexusDataSourceInitializing = globalForTypeORM.plexusDataSource.initialize();
+  }
+
+  try {
+    return await globalForTypeORM.plexusDataSourceInitializing;
+  } finally {
+    globalForTypeORM.plexusDataSourceInitializing = undefined;
+  }
 };

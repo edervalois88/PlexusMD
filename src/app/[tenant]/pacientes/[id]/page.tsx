@@ -5,9 +5,8 @@ import { useDebounce } from "use-debounce";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { SideDoctorPanel } from "@/components/side-doctor/SideDoctorPanel";
-import { FileText, Plus, AlertTriangle, Activity, CheckCircle2, Wand2 } from "lucide-react";
+import { FileText, AlertTriangle, Activity, CheckCircle2, Wand2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getPatientForTenant } from "@/app/actions/patient";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PatientEMRPage({ params }: { params: Promise<{ tenant: string, id: string }> }) {
@@ -29,11 +28,11 @@ export default function PatientEMRPage({ params }: { params: Promise<{ tenant: s
 
   useEffect(() => {
     const validateAccess = async () => {
-      try {
-        // Validación simulada para demostración
-        setTimeout(() => setIsValidating(false), 1200);
-      } catch (err: any) {
-        setValidationError(err.message);
+    try {
+      // Validación simulada para demostración
+      setTimeout(() => setIsValidating(false), 1200);
+    } catch (err: unknown) {
+        setValidationError(err instanceof Error ? err.message : "Error validando acceso.");
         setIsValidating(false);
       }
     };
@@ -95,7 +94,7 @@ export default function PatientEMRPage({ params }: { params: Promise<{ tenant: s
     doc.text(`Dosis e indicaciones: ${dosage}`, 20, 100);
     
     try {
-      const qrDataUrl = await QRCode.toDataURL(`valid_rx_${Date.now()}`);
+      const qrDataUrl = await QRCode.toDataURL(`valid_rx_${patient.id}_${medication}_${dosage}`);
       doc.addImage(qrDataUrl, "PNG", 160, 250, 30, 30);
       doc.setFontSize(8);
       doc.text("Validación QR", 163, 285);
@@ -256,7 +255,7 @@ P: 1. Reiniciar Losartán 50mg c/12h.
               onClose={() => {}}
               patientId={patient.id}
               patientHistory={patient.history}
-              updatedAt={new Date().toISOString()} // mock
+              updatedAt={`demo-${patient.id}`}
               reason={debouncedSoap || "Consulta general"}
               variant="inline"
             />

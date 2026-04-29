@@ -1,7 +1,25 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { faker } from '@faker-js/faker';
+import { Pool } from 'pg';
 
-const prisma = new PrismaClient();
+const connectionString = process.env.POSTGRES_URL;
+
+if (!connectionString) {
+  throw new Error('POSTGRES_URL is required to run the seed.');
+}
+
+const pool = new Pool({
+  connectionString,
+  max: Number(process.env.POSTGRES_POOL_MAX ?? 5),
+  idleTimeoutMillis: Number(process.env.POSTGRES_IDLE_TIMEOUT_MS ?? 10_000),
+  connectionTimeoutMillis: Number(process.env.POSTGRES_CONNECTION_TIMEOUT_MS ?? 5_000),
+  allowExitOnIdle: true,
+});
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg(pool),
+});
 
 async function main() {
   console.log('🌱 Iniciando Seeding de Staging/Pruebas de Carga...');
@@ -82,4 +100,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });

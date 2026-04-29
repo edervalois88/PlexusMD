@@ -10,7 +10,7 @@ interface SideDoctorPanelProps {
   isOpen: boolean;
   onClose: () => void;
   patientId: string;
-  patientHistory: any;
+  patientHistory: unknown;
   updatedAt: string;
   reason: string;
   variant?: "overlay" | "inline";
@@ -162,19 +162,35 @@ export function SideDoctorPanel({
                 >
                   <ReactMarkdown
                     components={{
-                      ul: ({ node, ...props }) => (
-                        <ul className="list-none pl-0 space-y-3" {...props} />
-                      ),
-                      li: ({ node, ...props }) => (
-                        <li className="flex gap-3 items-start" {...props}>
-                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#14B8A6] flex-shrink-0" />
-                          <span className="flex-1">{props.children}</span>
-                        </li>
-                      ),
-                      h1: ({ node, ...props }) => <h1 className="text-[#1E293B] font-bold text-lg mb-4 mt-6" {...props} />,
-                      h2: ({ node, ...props }) => <h2 className="text-[#1E293B] font-semibold text-md mb-3 mt-5" {...props} />,
-                      h3: ({ node, ...props }) => <h3 className="text-[#1E293B] font-medium text-base mb-2 mt-4" {...props} />,
-                      strong: ({ node, ...props }) => <strong className="font-semibold text-[#1E293B]" {...props} />,
+                      ul: ({ node, ...props }) => {
+                        void node;
+                        return <ul className="list-none pl-0 space-y-3" {...props} />;
+                      },
+                      li: ({ node, ...props }) => {
+                        void node;
+                        return (
+                          <li className="flex gap-3 items-start" {...props}>
+                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#14B8A6] flex-shrink-0" />
+                            <span className="flex-1">{props.children}</span>
+                          </li>
+                        );
+                      },
+                      h1: ({ node, ...props }) => {
+                        void node;
+                        return <h1 className="text-[#1E293B] font-bold text-lg mb-4 mt-6" {...props} />;
+                      },
+                      h2: ({ node, ...props }) => {
+                        void node;
+                        return <h2 className="text-[#1E293B] font-semibold text-md mb-3 mt-5" {...props} />;
+                      },
+                      h3: ({ node, ...props }) => {
+                        void node;
+                        return <h3 className="text-[#1E293B] font-medium text-base mb-2 mt-4" {...props} />;
+                      },
+                      strong: ({ node, ...props }) => {
+                        void node;
+                        return <strong className="font-semibold text-[#1E293B]" {...props} />;
+                      },
                     }}
                   >
                     {insight}
