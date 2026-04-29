@@ -49,3 +49,14 @@ ${JSON.stringify(patientHistory, null, 2)}`;
     throw new Error("Failed to generate AI insights.");
   }
 }
+
+export async function generateClinicalNews(tenant: string) {
+  // Simulando llamada a IA
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  
+  return [
+    "Avance en Diabetes Tipo 2: Nuevos estudios sobre la eficacia de los inhibidores SGLT2 en pacientes con comorbilidades renales.",
+    "Hipertensión: Guía actualizada de la AHA destaca la importancia de la monitorización ambulatoria frente a la consulta clínica.",
+    "Protocolo de Asma: La terapia de mantenimiento y rescate (MART) se consolida como estándar de oro."
+  ];
+}
