@@ -1,7 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
 
 async function main() {
   console.log('🌱 Iniciando Seeding de Staging/Pruebas de Carga...');
