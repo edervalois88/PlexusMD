@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { createAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/super-admin-auth";
 
@@ -50,7 +51,7 @@ export async function upsertMedication(
     const warnings = parseWarnings(parsed.data.warnings) as Prisma.InputJsonValue;
 
     if (parsed.data.id) {
-      await prisma.medication.update({
+      const medication = await prisma.medication.update({
         where: {
           id: parsed.data.id,
         },
@@ -61,13 +62,31 @@ export async function upsertMedication(
           legal_notes: parsed.data.legalNotes || null,
         },
       });
+
+      await createAuditLog({
+        action: "medication.updated",
+        resource: "Medication",
+        payload: {
+          medicationId: medication.id,
+          name: medication.name,
+        },
+      });
     } else {
-      await prisma.medication.create({
+      const medication = await prisma.medication.create({
         data: {
           name: parsed.data.name,
           common_dose: parsed.data.commonDose,
           warnings,
           legal_notes: parsed.data.legalNotes || null,
+        },
+      });
+
+      await createAuditLog({
+        action: "medication.created",
+        resource: "Medication",
+        payload: {
+          medicationId: medication.id,
+          name: medication.name,
         },
       });
     }
@@ -98,6 +117,14 @@ export async function deleteMedication(formData: FormData) {
   await prisma.medication.delete({
     where: {
       id,
+    },
+  });
+
+  await createAuditLog({
+    action: "medication.deleted",
+    resource: "Medication",
+    payload: {
+      medicationId: id,
     },
   });
 

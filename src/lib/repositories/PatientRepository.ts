@@ -1,6 +1,7 @@
 import { getDataSource, PatientEntity } from "../data-source";
 import { ILike } from "typeorm";
 import type { QueryDeepPartialEntity } from "typeorm";
+import { createAuditLog } from "../audit";
 
 type PatientCreateInput = Omit<Partial<PatientEntity>, "id" | "organization_id" | "createdAt" | "updatedAt">;
 type PatientUpdateInput = QueryDeepPartialEntity<Pick<PatientEntity, "full_name" | "curp" | "birth_date" | "medical_history_json">>;
@@ -48,12 +49,24 @@ export class PatientRepository {
     const dataSource = await getDataSource();
     const repo = dataSource.getRepository(PatientEntity);
 
-    return await repo.save(
+    const savedPatient = await repo.save(
       repo.create({
         ...patient,
         organization_id: organizationId,
       }),
     );
+
+    await createAuditLog({
+      organizationId,
+      action: "patient.created",
+      resource: "Patient",
+      payload: {
+        patientId: savedPatient.id,
+        fullName: savedPatient.full_name,
+      },
+    });
+
+    return savedPatient;
   }
 
   static async update(organizationId: string, patientId: string, patient: PatientUpdateInput) {
@@ -70,7 +83,19 @@ export class PatientRepository {
       patient,
     );
 
-    return await PatientRepository.findOne(organizationId, patientId);
+    const updatedPatient = await PatientRepository.findOne(organizationId, patientId);
+
+    await createAuditLog({
+      organizationId,
+      action: "patient.updated",
+      resource: "Patient",
+      payload: {
+        patientId,
+        changedFields: Object.keys(patient),
+      },
+    });
+
+    return updatedPatient;
   }
 
   static async findPatientForTenant(organizationId: string, patientId: string) {

@@ -1,5 +1,8 @@
 import { cookies } from "next/headers";
+import { getServerSession } from "next-auth/next";
 import { jwtVerify } from "jose";
+
+import { authOptions } from "@/auth";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "super-secret-key-change-in-prod");
 
@@ -16,6 +19,15 @@ const isSuperAdminPayload = (payload: AuthPayload) => {
 };
 
 export const requireSuperAdmin = async () => {
+  const session = await getServerSession(authOptions);
+
+  if (session?.user?.role?.toUpperCase() === "SUPERADMIN" || session?.user?.role?.toUpperCase() === "SUPER_ADMIN") {
+    return {
+      role: session.user.role,
+      email: session.user.email ?? undefined,
+    };
+  }
+
   const token = (await cookies()).get("auth_token")?.value;
 
   if (!token) {

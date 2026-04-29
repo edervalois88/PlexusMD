@@ -3,8 +3,10 @@ import type { NextRequest } from "next/server";
 import { kv } from "@vercel/kv";
 import { Ratelimit } from "@upstash/ratelimit";
 import { jwtVerify } from "jose";
+import { getToken } from "next-auth/jwt";
 
 import { getDataSource, OrganizationEntity } from "@/lib/data-source";
+import { UserEntity } from "@/lib/data-source";
 
 const TENANT_CACHE_TTL_SECONDS = 60;
 
@@ -21,6 +23,7 @@ const aiTenantRatelimit = new Ratelimit({
 });
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "super-secret-key-change-in-prod");
+const AUTH_SECRET = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? process.env.JWT_SECRET ?? "super-secret-key-change-in-prod";
 const VERCEL_APP_DOMAIN = "vercel.app";
 
 const getClientIp = (request: NextRequest) => {
@@ -38,6 +41,79 @@ const isSuperAdminPayload = (payload: { role?: unknown; email?: unknown }) => {
   const allowedEmail = process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
 
   return role === "SUPERADMIN" || role === "SUPER_ADMIN" || Boolean(allowedEmail && email === allowedEmail);
+};
+
+type RequestAuthContext = {
+  role?: string;
+  email?: string;
+  organizationId?: string;
+  tenantSlug?: string;
+};
+
+const buildRootLoginUrl = (request: NextRequest) => {
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? process.env.ROOT_DOMAIN;
+
+  if (rootDomain) {
+    return `https://${rootDomain}/login`;
+  }
+
+  return new URL("/login", request.url).toString();
+};
+
+const resolveLegacyAuthContext = async (request: NextRequest): Promise<RequestAuthContext | null> => {
+  const legacyToken = request.cookies.get("auth_token")?.value;
+
+  if (!legacyToken) {
+    return null;
+  }
+
+  try {
+    const { payload } = await jwtVerify(legacyToken, JWT_SECRET);
+    const email = typeof payload.email === "string" ? payload.email.toLowerCase() : "";
+    const role = typeof payload.role === "string" ? payload.role : undefined;
+
+    if (!email) {
+      return { role, email: undefined };
+    }
+
+    const dataSource = await getDataSource();
+    const user = await dataSource.getRepository(UserEntity).findOne({
+      where: {
+        email,
+      },
+      relations: {
+        organization: true,
+      },
+    });
+
+    if (!user?.organization) {
+      return { role, email };
+    }
+
+    return {
+      role: user.role ?? role,
+      email,
+      organizationId: user.organization_id,
+      tenantSlug: user.organization.slug,
+    };
+  } catch {
+    return null;
+  }
+};
+
+const resolveAuthContext = async (request: NextRequest): Promise<RequestAuthContext | null> => {
+  const token = await getToken({ req: request, secret: AUTH_SECRET });
+
+  if (token) {
+    return {
+      role: typeof token.role === "string" ? token.role : undefined,
+      email: typeof token.email === "string" ? token.email : undefined,
+      organizationId: typeof token.organizationId === "string" ? token.organizationId : undefined,
+      tenantSlug: typeof token.tenantSlug === "string" ? token.tenantSlug : undefined,
+    };
+  }
+
+  return await resolveLegacyAuthContext(request);
 };
 
 const getTenantSlug = (hostname: string) => {
@@ -174,19 +250,13 @@ export async function proxy(request: NextRequest) {
   }
 
   if (url.pathname.startsWith("/super")) {
-    const token = request.cookies.get("auth_token")?.value;
+    const authContext = await resolveAuthContext(request);
 
-    if (!token) {
+    if (!authContext) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
-    try {
-      const { payload } = await jwtVerify(token, JWT_SECRET);
-
-      if (!isSuperAdminPayload(payload as { role?: unknown; email?: unknown })) {
-        return NextResponse.redirect(new URL("/", request.url));
-      }
-    } catch {
+    if (!isSuperAdminPayload(authContext)) {
       return NextResponse.redirect(new URL("/", request.url));
     }
   }
@@ -201,18 +271,16 @@ export async function proxy(request: NextRequest) {
       return NextResponse.rewrite(url);
     }
 
-    const token = request.cookies.get("auth_token")?.value;
+    const authContext = await resolveAuthContext(request);
 
-    if (url.pathname.startsWith("/api") || url.pathname !== "/") {
-      if (!token) {
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
+    if (!authContext?.tenantSlug) {
+      return NextResponse.redirect(new URL(buildRootLoginUrl(request)));
+    }
 
-      try {
-        await jwtVerify(token, JWT_SECRET);
-      } catch {
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
+    if (authContext.tenantSlug !== tenantSlug) {
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? process.env.ROOT_DOMAIN;
+      const target = rootDomain ? `https://${authContext.tenantSlug}.${rootDomain}/dashboard` : `/${authContext.tenantSlug}/dashboard`;
+      return NextResponse.redirect(new URL(target, request.url));
     }
 
     if (url.pathname.includes("/actions/ai")) {

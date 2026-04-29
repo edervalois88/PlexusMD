@@ -57,7 +57,7 @@ export function Sidebar({ tenant }: { tenant: string }) {
       </nav>
       <div className="mt-auto">
         <Link
-          href={`/${tenant}/configuracion`}
+          href={`/${tenant}/configuracion/auditoria`}
           className="flex items-center gap-3 px-4 py-2 text-[#1E293B] hover:bg-white/40 rounded-xl transition-colors"
         >
           <Settings size={20} className="text-[#14B8A6]" />

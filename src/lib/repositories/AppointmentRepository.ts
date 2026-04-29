@@ -1,6 +1,7 @@
 import { getDataSource, AppointmentEntity } from "../data-source";
 import { Between } from "typeorm";
 import type { QueryDeepPartialEntity } from "typeorm";
+import { createAuditLog } from "../audit";
 
 type AppointmentCreateInput = Omit<Partial<AppointmentEntity>, "id" | "organization_id" | "createdAt" | "updatedAt">;
 type AppointmentUpdateInput = QueryDeepPartialEntity<
@@ -50,12 +51,26 @@ export class AppointmentRepository {
     const dataSource = await getDataSource();
     const repo = dataSource.getRepository(AppointmentEntity);
 
-    return await repo.save(
+    const savedAppointment = await repo.save(
       repo.create({
         ...appointment,
         organization_id: organizationId,
       }),
     );
+
+    await createAuditLog({
+      organizationId,
+      action: "appointment.created",
+      resource: "Appointment",
+      payload: {
+        appointmentId: savedAppointment.id,
+        patientId: savedAppointment.patient_id,
+        doctorId: savedAppointment.doctor_id,
+        startTime: savedAppointment.start_time?.toISOString(),
+      },
+    });
+
+    return savedAppointment;
   }
 
   static async update(organizationId: string, appointmentId: string, appointment: AppointmentUpdateInput) {
@@ -72,7 +87,19 @@ export class AppointmentRepository {
       appointment,
     );
 
-    return await AppointmentRepository.findOne(organizationId, appointmentId);
+    const updatedAppointment = await AppointmentRepository.findOne(organizationId, appointmentId);
+
+    await createAuditLog({
+      organizationId,
+      action: "appointment.updated",
+      resource: "Appointment",
+      payload: {
+        appointmentId,
+        changedFields: Object.keys(appointment),
+      },
+    });
+
+    return updatedAppointment;
   }
 
   static async findDailyAppointmentsForTenant(organizationId: string, date: Date) {

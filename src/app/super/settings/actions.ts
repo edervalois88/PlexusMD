@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { encryptSecret } from "@/lib/encryption";
+import { createAuditLog } from "@/lib/audit";
 import { GoogleCalendarService } from "@/lib/google-calendar";
 import { getOrganizationSettings, invalidateOrganizationSettingsCache } from "@/lib/organization-settings";
 import { prisma } from "@/lib/prisma";
@@ -110,6 +111,22 @@ export async function updateOrganizationSettings(
     });
 
     await invalidateOrganizationSettingsCache(organization.id, organization.slug);
+    await createAuditLog({
+      organizationId: organization.id,
+      action: "organization_settings.updated",
+      resource: "OrganizationSettings",
+      payload: {
+        organizationId: organization.id,
+        organizationSlug: organization.slug,
+        changedFields: [
+          "google_calendar_id",
+          "stripe_account_id",
+          "whatsapp_phone_id",
+          "custom_metadata",
+          ...(encryptedWhatsAppToken ? ["whatsapp_access_token"] : []),
+        ],
+      },
+    });
     revalidatePath("/super/settings");
 
     return {

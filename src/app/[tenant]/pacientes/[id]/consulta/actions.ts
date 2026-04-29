@@ -3,6 +3,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { z } from "zod";
 
+import { createAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 
 type MedicationInput = {
@@ -81,6 +82,17 @@ export async function validateMedicationSelection(input: {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
+    await createAuditLog({
+      organizationId: input.organizationId,
+      action: "prescription.medication_validated",
+      resource: "Prescription",
+      payload: {
+        medicationName: medication.name,
+        alertCount: alerts.length,
+        aiEnabled: false,
+      },
+    });
+
     return {
       alerts,
       aiNote: alerts.length ? "Validación local completada. Confirma clínicamente antes de recetar." : "Sin alertas locales evidentes.",
@@ -108,6 +120,17 @@ Alertas locales detectadas: ${JSON.stringify(alerts)}
       data: { ai_usage_count: { increment: 1 } },
     });
   }
+
+  await createAuditLog({
+    organizationId: input.organizationId,
+    action: "prescription.medication_validated",
+    resource: "Prescription",
+    payload: {
+      medicationName: medication.name,
+      alertCount: alerts.length,
+      aiEnabled: true,
+    },
+  });
 
   return {
     alerts,

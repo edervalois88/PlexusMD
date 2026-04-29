@@ -37,6 +37,7 @@ model Organization {
   patients          Patient[]
   appointments      Appointment[]
   settings          OrganizationSettings?
+  auditLogs         AuditLog[]
 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -59,14 +60,57 @@ model OrganizationSettings {
 model User {
   id              String       @id @default(uuid())
   email           String       @unique
+  name            String?
+  image           String?
+  emailVerified   DateTime?
   role            Role         @default(DOCTOR)
   organization_id String
   organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
   
   doctorAppointments Appointment[] @relation("DoctorAppointments")
+  accounts         Account[]
+  sessions         Session[]
+  auditLogs        AuditLog[]
 
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  oauth_token_secret String?
+  oauth_token       String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Patient {
@@ -117,4 +161,22 @@ model Medication {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id             String        @id @default(uuid())
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  action         String
+  resource       String
+  payload        Json?         @default("{}")
+  ip             String?
+
+  createdAt      DateTime      @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
 }
