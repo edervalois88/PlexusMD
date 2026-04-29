@@ -1,4 +1,4 @@
-import { generateClinicalNews } from "@/app/actions/ai";
+import { generateClinicalNews } from "@/actions/ai";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function NewsFeed({ tenant }: { tenant: string }) {

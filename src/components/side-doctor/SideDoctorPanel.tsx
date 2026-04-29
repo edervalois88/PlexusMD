@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, BrainCircuit, Activity } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { analyzePatientInsight } from "@/app/actions/ai";
+import { analyzePatientInsight } from "@/actions/ai";
 
 interface SideDoctorPanelProps {
   isOpen: boolean;
