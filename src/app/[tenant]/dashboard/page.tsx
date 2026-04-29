@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import NewsFeed from "@/components/dashboard/NewsFeed";
-import { getAppointmentsForToday } from "@/actions/appointment";
+import { getAppointmentsForToday } from "@/app/actions/appointment";
 
 export default async function DoctorDashboard({ params }: { params: { tenant: string } }) {
   const { tenant } = await params;
