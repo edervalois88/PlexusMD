@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { stripe } from "@/lib/stripe";
-import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
+  // Inicializar Stripe solo en tiempo de ejecución
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+    apiVersion: "2026-04-22.dahlia",
+  });
+
   const body = await req.text();
   const signature = (await headers()).get("stripe-signature");
 
@@ -15,7 +19,6 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    // Usamos la instancia importada 'stripe' que ya tiene la apiVersion y la clave configuradas.
     event = stripe.webhooks.constructEvent(
       body,
       signature,
@@ -28,8 +31,6 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    
-    // Recuperamos el ID de la cita que pasamos en metadata al crear el Checkout
     const appointmentId = session.metadata?.appointmentId;
 
     if (appointmentId) {
