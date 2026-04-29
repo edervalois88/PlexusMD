@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import NewsFeed from "@/components/dashboard/NewsFeed";
@@ -22,7 +23,15 @@ export default async function DoctorDashboard({ params }: { params: Promise<{ te
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
       {/* Columna Principal: Timeline de Citas */}
       <div className="lg:col-span-2 space-y-6">
-        <h2 className="text-2xl font-bold text-slate-800">Citas de Hoy</h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-bold text-slate-800">Citas de Hoy</h2>
+          <Link
+            href={`/${tenant}/agenda`}
+            className="rounded-xl bg-[#14B8A6] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#119e8f]"
+          >
+            Nueva Cita Manual
+          </Link>
+        </div>
         <div className="space-y-4">
           {appointments.map((appt) => (
             <div

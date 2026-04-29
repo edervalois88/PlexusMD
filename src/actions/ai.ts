@@ -5,13 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const apiKey = process.env.GEMINI_API_KEY || "";
-const genAI = new GoogleGenerativeAI(apiKey);
 
 const systemInstruction = `Actúas como un asistente médico de élite. Tu objetivo es analizar el expediente y extraer:
-1. Alertas críticas (alergias, interacciones),
-2. Resumen de tendencias (ej. glucosa al alza),
+1. Alertas críticas: alergias, duplicidades e interacciones medicamentosas potenciales,
+2. Resumen de tendencias clínicas relevantes,
 3. Sugerencia de preguntas clave para el médico.
-No diagnostiques, solo asiste. Por favor, formatea la respuesta en una lista de puntos (bullet points) clara y elegante.`;
+No diagnostiques, no inventes dosis y no sustituyas criterio clínico. Si mencionas interacciones, aclara que deben validarse por el médico. Formatea la respuesta en una lista de puntos clara.`;
 
 export async function analyzePatientInsight(patientHistory: unknown, reason: string, organizationId?: string) {
   // Sanitización de Datos (Zod)
@@ -22,6 +21,7 @@ export async function analyzePatientInsight(patientHistory: unknown, reason: str
   }
 
   try {
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-pro",
       systemInstruction: systemInstruction,

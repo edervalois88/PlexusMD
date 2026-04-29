@@ -32,6 +32,14 @@ const normalizeHostname = (hostname: string) => hostname.split(":")[0]?.toLowerC
 
 const isVercelHostname = (hostname: string) => hostname === VERCEL_APP_DOMAIN || hostname.endsWith(`.${VERCEL_APP_DOMAIN}`);
 
+const isSuperAdminPayload = (payload: { role?: unknown; email?: unknown }) => {
+  const role = typeof payload.role === "string" ? payload.role.toUpperCase() : "";
+  const email = typeof payload.email === "string" ? payload.email.toLowerCase() : "";
+  const allowedEmail = process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+
+  return role === "SUPERADMIN" || role === "SUPER_ADMIN" || Boolean(allowedEmail && email === allowedEmail);
+};
+
 const getTenantSlug = (hostname: string) => {
   const normalizedHost = normalizeHostname(hostname);
   const rootDomain = process.env.ROOT_DOMAIN ?? "tu-dominio.com";
@@ -163,6 +171,24 @@ export async function proxy(request: NextRequest) {
 
   if (url.pathname.startsWith("/_next") || url.pathname.startsWith("/static") || url.pathname.includes(".")) {
     return NextResponse.next();
+  }
+
+  if (url.pathname.startsWith("/super")) {
+    const token = request.cookies.get("auth_token")?.value;
+
+    if (!token) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    try {
+      const { payload } = await jwtVerify(token, JWT_SECRET);
+
+      if (!isSuperAdminPayload(payload as { role?: unknown; email?: unknown })) {
+        return NextResponse.redirect(new URL("/", request.url));
+      }
+    } catch {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
 
   const tenantSlug = getTenantSlug(hostname);

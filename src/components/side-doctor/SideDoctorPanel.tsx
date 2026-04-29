@@ -10,6 +10,7 @@ interface SideDoctorPanelProps {
   isOpen: boolean;
   onClose: () => void;
   patientId: string;
+  organizationId?: string;
   patientHistory: unknown;
   updatedAt: string;
   reason: string;
@@ -27,6 +28,7 @@ export function SideDoctorPanel({
   isOpen,
   onClose,
   patientId,
+  organizationId,
   patientHistory,
   updatedAt,
   reason,
@@ -67,7 +69,7 @@ export function SideDoctorPanel({
       setInsight("");
       
       try {
-        const result = await analyzePatientInsight(patientHistory, reason);
+        const result = await analyzePatientInsight(patientHistory, reason, organizationId);
         setInsight(result);
         
         // Guardar en caché
@@ -87,7 +89,7 @@ export function SideDoctorPanel({
     };
 
     fetchInsight();
-  }, [isOpen, patientId, updatedAt, patientHistory, reason]);
+  }, [isOpen, patientId, organizationId, updatedAt, patientHistory, reason]);
 
   return (
     <AnimatePresence>

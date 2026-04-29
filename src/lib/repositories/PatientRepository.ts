@@ -1,4 +1,5 @@
 import { getDataSource, PatientEntity } from "../data-source";
+import { ILike } from "typeorm";
 import type { QueryDeepPartialEntity } from "typeorm";
 
 type PatientCreateInput = Omit<Partial<PatientEntity>, "id" | "organization_id" | "createdAt" | "updatedAt">;
@@ -78,5 +79,22 @@ export class PatientRepository {
 
   static async findPatientsByTenant(organizationId: string) {
     return await PatientRepository.find(organizationId);
+  }
+
+  static async findGoldenPatientForTenant(organizationId: string) {
+    PatientRepository.requireOrganizationId(organizationId);
+
+    const dataSource = await getDataSource();
+    const repo = dataSource.getRepository(PatientEntity);
+
+    return await repo.findOne({
+      where: {
+        organization_id: organizationId,
+        full_name: ILike("%Roberto Castañeda%"),
+      },
+      order: {
+        createdAt: "ASC",
+      },
+    });
   }
 }

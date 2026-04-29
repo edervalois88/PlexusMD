@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Metformina",
+    "commonDose": "850 mg cada 12 horas con alimentos",
+    "warnings": ["Precaucion en enfermedad renal", "Puede causar malestar gastrointestinal"]
+  },
+  {
+    "name": "Losartan",
+    "commonDose": "50 mg cada 24 horas",
+    "warnings": ["Monitorear potasio", "Evitar en embarazo"]
+  },
+  {
+    "name": "Atorvastatina",
+    "commonDose": "20 mg cada 24 horas por la noche",
+    "warnings": ["Vigilar dolor muscular", "Revisar enzimas hepaticas si hay sintomas"]
+  },
+  {
+    "name": "Aspirina Protect",
+    "commonDose": "100 mg cada 24 horas",
+    "warnings": ["Riesgo de sangrado", "Evitar en alergia a AINEs"]
+  },
+  {
+    "name": "Sitagliptina",
+    "commonDose": "100 mg cada 24 horas",
+    "warnings": ["Ajustar en insuficiencia renal"]
+  },
+  {
+    "name": "Amlodipino",
+    "commonDose": "5 mg cada 24 horas",
+    "warnings": ["Puede causar edema periférico", "Vigilar hipotension"]
+  },
+  {
+    "name": "Salbutamol",
+    "commonDose": "100 mcg, 1-2 inhalaciones cada 4-6 horas si hay broncoespasmo",
+    "warnings": ["Puede causar taquicardia", "Revalorar si aumenta la necesidad de rescate"]
+  }
+]

@@ -5,22 +5,64 @@ import { useDebounce } from "use-debounce";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { SideDoctorPanel } from "@/components/side-doctor/SideDoctorPanel";
-import { FileText, AlertTriangle, Activity, CheckCircle2, Wand2 } from "lucide-react";
+import { FileText, AlertTriangle, Activity, CheckCircle2, Wand2, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getPatientForTenant } from "@/actions/patient";
+import vademecum from "@/data/vademecum.json";
+
+type PatientHistory = {
+  conditions?: string[];
+  previousMeds?: string[];
+  allergies?: string[];
+  pastNotes?: Array<{ date: string; note: string }>;
+};
+
+type PatientRecord = {
+  id: string;
+  organization_id: string;
+  full_name: string;
+  curp: string | null;
+  birth_date: string | null;
+  medical_history_json: PatientHistory;
+  updatedAt: string;
+};
+
+const fallbackHistory: PatientHistory = {
+  conditions: ["Diabetes Mellitus Tipo 2", "Hipertensión Arterial Sistémica"],
+  previousMeds: ["Metformina 850mg c/12h", "Losartán 50mg c/24h"],
+  allergies: ["Penicilina"],
+};
+
+const calculateAge = (birthDate: string | null) => {
+  if (!birthDate) return 58;
+
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDelta = today.getMonth() - birth.getMonth();
+
+  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birth.getDate())) {
+    age -= 1;
+  }
+
+  return age;
+};
 
 export default function PatientEMRPage({ params }: { params: Promise<{ tenant: string, id: string }> }) {
   const resolvedParams = use(params);
-  // Mock Data
+  const [patientRecord, setPatientRecord] = useState<PatientRecord | null>(null);
+  const patientHistory = patientRecord?.medical_history_json ?? fallbackHistory;
   const patient = {
     id: resolvedParams.id,
-    name: "Ana Martínez",
-    age: 32,
+    name: patientRecord?.full_name ?? "Roberto Castañeda (Golden Patient)",
+    age: calculateAge(patientRecord?.birth_date ?? "1965-04-23"),
     weight: "65 kg",
     height: "1.68 m",
     bloodType: "O+",
-    allergies: ["Penicilina", "Nueces"],
-    history: { conditions: ["Asma leve"], previousMeds: ["Salbutamol PRN"] }
+    allergies: patientHistory.allergies ?? ["Penicilina"],
+    history: patientHistory,
+    updatedAt: patientRecord?.updatedAt ?? `demo-${resolvedParams.id}`,
   };
 
   const [isValidating, setIsValidating] = useState(true);
@@ -29,8 +71,9 @@ export default function PatientEMRPage({ params }: { params: Promise<{ tenant: s
   useEffect(() => {
     const validateAccess = async () => {
     try {
-      // Validación simulada para demostración
-      setTimeout(() => setIsValidating(false), 1200);
+      const dbPatient = await getPatientForTenant(resolvedParams.tenant, resolvedParams.id);
+      setPatientRecord(dbPatient as PatientRecord);
+      setIsValidating(false);
     } catch (err: unknown) {
         setValidationError(err instanceof Error ? err.message : "Error validando acceso.");
         setIsValidating(false);
@@ -74,12 +117,16 @@ export default function PatientEMRPage({ params }: { params: Promise<{ tenant: s
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
   const [medication, setMedication] = useState("");
   const [dosage, setDosage] = useState("");
+  const [medicationSearch, setMedicationSearch] = useState("");
+  const medicationMatches = vademecum.filter((item) =>
+    item.name.toLowerCase().includes(medicationSearch.toLowerCase()),
+  );
 
   const handleGeneratePDF = async () => {
     const doc = new jsPDF();
     doc.setFontSize(22);
     doc.setTextColor(30, 41, 59);
-    doc.text("Arctic Clinical", 20, 20);
+    doc.text("PlexusMD", 20, 20);
     doc.setFontSize(12);
     doc.setTextColor(100, 116, 139);
     doc.text("Receta Médica", 20, 30);
@@ -254,8 +301,9 @@ P: 1. Reiniciar Losartán 50mg c/12h.
               isOpen={true}
               onClose={() => {}}
               patientId={patient.id}
+              organizationId={patientRecord?.organization_id}
               patientHistory={patient.history}
-              updatedAt={`demo-${patient.id}`}
+              updatedAt={patient.updatedAt}
               reason={debouncedSoap || "Consulta general"}
               variant="inline"
             />
@@ -271,6 +319,42 @@ P: 1. Reiniciar Losartán 50mg c/12h.
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 m-4">
               <h3 className="text-xl font-bold text-[#1E293B] mb-4">Generar Receta</h3>
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Buscar en vademécum local</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
+                    <input
+                      type="text"
+                      value={medicationSearch}
+                      onChange={(e) => setMedicationSearch(e.target.value)}
+                      placeholder="Metformina, Losartan..."
+                      className="w-full rounded-xl border px-10 py-2 focus:ring-[#14B8A6]"
+                    />
+                  </div>
+                  {medicationSearch ? (
+                    <div className="mt-2 max-h-40 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50 p-2">
+                      {medicationMatches.length > 0 ? (
+                        medicationMatches.map((item) => (
+                          <button
+                            key={item.name}
+                            type="button"
+                            onClick={() => {
+                              setMedication(item.name);
+                              setDosage(item.commonDose);
+                              setMedicationSearch(item.name);
+                            }}
+                            className="w-full rounded-lg p-2 text-left text-sm transition hover:bg-white"
+                          >
+                            <span className="font-semibold text-slate-800">{item.name}</span>
+                            <span className="block text-slate-500">{item.commonDose}</span>
+                          </button>
+                        ))
+                      ) : (
+                        <p className="p-2 text-sm text-slate-500">Sin coincidencias en el vademécum inicial.</p>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Medicamento</label>
                   <input type="text" value={medication} onChange={(e) => setMedication(e.target.value)} className="w-full px-4 py-2 border rounded-xl focus:ring-[#14B8A6]" />

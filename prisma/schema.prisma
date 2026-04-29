@@ -36,9 +36,24 @@ model Organization {
   users             User[]
   patients          Patient[]
   appointments      Appointment[]
+  settings          OrganizationSettings?
 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+}
+
+model OrganizationSettings {
+  id                    String       @id @default(uuid())
+  organization_id       String       @unique
+  organization          Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  google_calendar_id    String?
+  stripe_account_id     String?
+  whatsapp_access_token String?
+  whatsapp_phone_id     String?
+  custom_metadata       Json?        @default("{}")
+
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
 }
 
 model User {
@@ -90,4 +105,16 @@ model Appointment {
   updatedAt       DateTime     @updatedAt
 
   @@index([organization_id, start_time])
+}
+
+model Medication {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  common_dose String
+  warnings    Json?    @default("[]")
+  legal_notes String?
+  is_active   Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
