@@ -16,7 +16,7 @@ export default function RegistroPage() {
         <div>
           <Link href="/" className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-slate-900">
             <ArrowLeft size={16} />
-            Volver a demos
+            Volver al portal
           </Link>
 
           <p className="mb-4 text-sm font-bold uppercase tracking-[0.24em] text-teal-700">Onboarding PlexusMD</p>

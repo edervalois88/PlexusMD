@@ -233,6 +233,15 @@ const shouldUseDefaultTenant = (hostname: string) => {
   );
 };
 
+const isPublicRootPath = (pathname: string) =>
+  pathname === "/" ||
+  pathname.startsWith("/login") ||
+  pathname.startsWith("/registro") ||
+  pathname.startsWith("/api/auth") ||
+  pathname.startsWith("/auth/callback") ||
+  pathname.startsWith("/debug/health") ||
+  pathname === "/icon.svg";
+
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = request.headers.get("host") || "";
@@ -263,6 +272,10 @@ export async function proxy(request: NextRequest) {
 
   const tenantSlug = getTenantSlug(hostname);
 
+  if (!tenantSlug && isPublicRootPath(url.pathname)) {
+    return NextResponse.next();
+  }
+
   if (tenantSlug && tenantSlug !== "www") {
     const status = await getOrganizationStatus(tenantSlug);
 
@@ -292,7 +305,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  if (shouldUseDefaultTenant(hostname) && (url.pathname === "/" || url.pathname === "/dashboard")) {
+  if (shouldUseDefaultTenant(hostname) && url.pathname === "/dashboard") {
     const defaultTenantSlug = await getDefaultTenantSlug();
 
     if (defaultTenantSlug) {
