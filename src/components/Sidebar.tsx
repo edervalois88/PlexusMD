@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { LayoutDashboard, Calendar, Users, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
