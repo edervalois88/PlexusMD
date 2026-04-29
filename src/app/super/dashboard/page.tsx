@@ -1,8 +1,13 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Users, Activity, DollarSign, ShieldAlert } from "lucide-react";
+
+const AiUsageChart = dynamic(() => import("./AiUsageChart"), {
+  ssr: false,
+  loading: () => <div className="h-full w-full animate-pulse rounded-2xl bg-slate-100" />,
+});
 
 const getDemoTokenUsage = (index: number, isWeekend: boolean) => {
   const seed = (index + 1) * 9301 + 49297;
@@ -78,14 +83,7 @@ export default function SuperAdminDashboard() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white/80 backdrop-blur-xl border border-slate-200/50 p-6 rounded-2xl shadow-sm">
           <h2 className="text-lg font-bold text-[#1E293B] mb-6">Consumo Global de IA (Últimos 30 días)</h2>
           <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={aiUsageData}>
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickMargin={10} minTickGap={20} />
-                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
-                <Tooltip cursor={{ fill: '#f1f5f9' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Bar dataKey="tokens" fill="#14B8A6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <AiUsageChart data={aiUsageData} />
           </div>
         </motion.div>
 

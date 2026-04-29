@@ -1,6 +1,8 @@
 import { Sidebar } from "@/components/Sidebar";
 import { PageWrapper } from "@/components/PageWrapper";
+import { getDataSource, OrganizationEntity } from "@/lib/data-source";
 import { ReactNode } from "react";
+import { notFound } from "next/navigation";
 
 export default async function TenantLayout({
   children,
@@ -10,6 +12,20 @@ export default async function TenantLayout({
   params: Promise<{ tenant: string }>;
 }) {
   const resolvedParams = await params;
+  const dataSource = await getDataSource();
+  const organization = await dataSource.getRepository(OrganizationEntity).findOne({
+    select: {
+      id: true,
+      is_active: true,
+    },
+    where: {
+      slug: resolvedParams.tenant,
+    },
+  });
+
+  if (!organization?.is_active) {
+    notFound();
+  }
 
   return (
     <div className="flex min-h-screen bg-[#F9FAFB]">
