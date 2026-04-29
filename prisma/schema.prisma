@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  DOCTOR
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+model Organization {
+  id                String   @id @default(uuid())
+  name              String
+  slug              String   @unique // subdomain
+  stripe_connect_id String?
+  settings_json     Json?    @default("{}")
+  ai_usage_count    Int      @default(0)
+  is_active         Boolean  @default(true)
+  
+  users             User[]
+  patients          Patient[]
+  appointments      Appointment[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model User {
+  id              String       @id @default(uuid())
+  email           String       @unique
+  role            Role         @default(DOCTOR)
+  organization_id String
+  organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  
+  doctorAppointments Appointment[] @relation("DoctorAppointments")
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model Patient {
+  id                   String       @id @default(uuid())
+  organization_id      String
+  organization         Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  full_name            String
+  curp                 String?      // or ID
+  birth_date           DateTime?
+  medical_history_json Json?        @default("{}")
+
+  appointments         Appointment[]
+
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@index([organization_id, full_name])
+}
+
+model Appointment {
+  id              String       @id @default(uuid())
+  organization_id String
+  organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  
+  doctor_id       String
+  doctor          User         @relation("DoctorAppointments", fields: [doctor_id], references: [id])
+  
+  patient_id      String
+  patient         Patient      @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  
+  start_time      DateTime
+  status          AppointmentStatus @default(SCHEDULED)
+  payment_status  PaymentStatus     @default(PENDING)
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([organization_id, start_time])
+}
