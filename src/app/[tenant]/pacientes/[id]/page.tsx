@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useOptimistic, use, useEffect, useRef } from "react";
 import { useDebounce } from "use-debounce";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { SideDoctorPanel } from "@/components/side-doctor/SideDoctorPanel";
-import { FileText, AlertTriangle, Activity, CheckCircle2, Wand2, Search } from "lucide-react";
+import { FileText, AlertTriangle, Activity, CheckCircle2, Wand2, Search, Stethoscope } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPatientForTenant } from "@/actions/patient";
@@ -264,6 +265,12 @@ P: 1. Reiniciar Losartán 50mg c/12h.
                   >
                     <Wand2 size={16} />
                   </button>
+                  <Link
+                    href={`/${resolvedParams.tenant}/pacientes/${resolvedParams.id}/consulta`}
+                    className="flex items-center gap-2 rounded-xl bg-[#1E293B] px-4 py-2 text-sm text-white transition-colors hover:bg-[#0f172a]"
+                  >
+                    <Stethoscope size={16} /> Consulta IA
+                  </Link>
                   <button 
                     onClick={() => setIsPrescriptionModalOpen(true)}
                     className="flex items-center gap-2 text-sm bg-[#14B8A6] hover:bg-[#119e8f] text-white px-4 py-2 rounded-xl transition-colors"
