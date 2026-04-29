@@ -123,6 +123,9 @@ export class AppointmentEntity {
   @Column({ type: "text", default: "PENDING" })
   payment_status!: string;
 
+  @Column({ type: "text", nullable: true })
+  google_event_id!: string | null;
+
   @CreateDateColumn()
   createdAt!: Date;
 

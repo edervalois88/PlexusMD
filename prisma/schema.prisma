@@ -144,6 +144,7 @@ model Appointment {
   start_time      DateTime
   status          AppointmentStatus @default(SCHEDULED)
   payment_status  PaymentStatus     @default(PENDING)
+  google_event_id String?
 
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt

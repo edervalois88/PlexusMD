@@ -3,6 +3,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { z } from "zod";
 
+import { buildAiAuditPayload } from "@/lib/ai-audit";
 import { createAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 
@@ -33,6 +34,8 @@ const patientHistorySchema = z.object({
   allergies: z.array(z.string()).optional(),
   pastNotes: z.array(z.object({ date: z.string(), note: z.string() })).optional(),
 });
+
+const SIDE_DOCTOR_MODEL = "gemini-1.5-pro";
 
 const detectLocalMedicationAlerts = (medication: MedicationInput, patientHistory: PatientHistory, selectedMedications: MedicationInput[]) => {
   const alerts: string[] = [];
@@ -82,11 +85,16 @@ export async function validateMedicationSelection(input: {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
+    const localRecommendation = alerts.length
+      ? "Validación local completada. Confirma clínicamente antes de recetar."
+      : "Sin alertas locales evidentes.";
+
     await createAuditLog({
       organizationId: input.organizationId,
-      action: "prescription.medication_validated",
-      resource: "Prescription",
+      action: "ai.side_doctor.medication_validated",
+      resource: "SideDoctor",
       payload: {
+        ...buildAiAuditPayload(localRecommendation, null, "local-rules"),
         medicationName: medication.name,
         alertCount: alerts.length,
         aiEnabled: false,
@@ -95,13 +103,13 @@ export async function validateMedicationSelection(input: {
 
     return {
       alerts,
-      aiNote: alerts.length ? "Validación local completada. Confirma clínicamente antes de recetar." : "Sin alertas locales evidentes.",
+      aiNote: localRecommendation,
     };
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro",
+    model: SIDE_DOCTOR_MODEL,
     systemInstruction:
       "Eres Side Doctor. Valida alergias e interacciones medicamentosas potenciales. No inventes dosis. Responde en 2-4 bullets clínicos, con tono prudente.",
   });
@@ -113,6 +121,7 @@ Historial del paciente: ${JSON.stringify(patientHistory)}
 Alertas locales detectadas: ${JSON.stringify(alerts)}
 `);
   const response = await result.response;
+  const responseText = response.text();
 
   if (input.organizationId) {
     await prisma.organization.update({
@@ -123,9 +132,10 @@ Alertas locales detectadas: ${JSON.stringify(alerts)}
 
   await createAuditLog({
     organizationId: input.organizationId,
-    action: "prescription.medication_validated",
-    resource: "Prescription",
+    action: "ai.side_doctor.medication_validated",
+    resource: "SideDoctor",
     payload: {
+      ...buildAiAuditPayload(responseText, response, SIDE_DOCTOR_MODEL),
       medicationName: medication.name,
       alertCount: alerts.length,
       aiEnabled: true,
@@ -134,7 +144,7 @@ Alertas locales detectadas: ${JSON.stringify(alerts)}
 
   return {
     alerts,
-    aiNote: response.text(),
+    aiNote: responseText,
   };
 }
 
@@ -148,19 +158,28 @@ export async function streamConsultationInsights(input: {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
+    const chunks = [
+      `Analizando ${input.patientName}...\n`,
+      "- Revisar alergias registradas antes de firmar receta.\n",
+      "- Validar duplicidades con medicamentos previos.\n",
+      "- Confirmar que la nota SOAP incluya plan y seguimiento.\n",
+    ];
+
+    await createAuditLog({
+      organizationId: input.organizationId,
+      action: "ai.side_doctor.consultation_streamed",
+      resource: "SideDoctor",
+      payload: buildAiAuditPayload(chunks.join(""), null, "local-rules"),
+    });
+
     return {
-      chunks: [
-        `Analizando ${input.patientName}...\n`,
-        "- Revisar alergias registradas antes de firmar receta.\n",
-        "- Validar duplicidades con medicamentos previos.\n",
-        "- Confirmar que la nota SOAP incluya plan y seguimiento.\n",
-      ],
+      chunks,
     };
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro",
+    model: SIDE_DOCTOR_MODEL,
     systemInstruction:
       "Eres Side Doctor durante una consulta. Genera insights clínicos breves y accionables. Enfócate en alergias, interacciones, lagunas en SOAP y preguntas de seguimiento. No diagnostiques.",
   });
@@ -178,12 +197,22 @@ Medicamentos seleccionados: ${JSON.stringify(input.selectedMedications)}
     if (text) chunks.push(text);
   }
 
+  const response = await result.response;
+  const responseText = chunks.join("");
+
   if (input.organizationId) {
     await prisma.organization.update({
       where: { id: input.organizationId },
       data: { ai_usage_count: { increment: 1 } },
     });
   }
+
+  await createAuditLog({
+    organizationId: input.organizationId,
+    action: "ai.side_doctor.consultation_streamed",
+    resource: "SideDoctor",
+    payload: buildAiAuditPayload(responseText, response, SIDE_DOCTOR_MODEL),
+  });
 
   return { chunks };
 }

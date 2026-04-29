@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Activity, Building2, Filter } from "lucide-react";
+import { Activity, BrainCircuit, Building2, Filter } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/super-admin-auth";
@@ -12,6 +12,7 @@ type PageProps = {
   searchParams: Promise<{
     organizationId?: string;
     action?: string;
+    scope?: string;
   }>;
 };
 
@@ -31,8 +32,13 @@ export default async function SuperAuditLogsPage({ searchParams }: PageProps) {
   const filters = await searchParams;
   const organizationId = filters.organizationId || "";
   const action = filters.action || "";
+  const scope = filters.scope === "ai" ? "ai" : "";
+  const where = {
+    ...(organizationId ? { organizationId } : {}),
+    ...(action ? { action } : scope === "ai" ? { action: { startsWith: "ai." } } : {}),
+  };
 
-  const [organizations, actionRows, logs] = await Promise.all([
+  const [organizations, actionRows, aiUsageByOrganization, logs] = await Promise.all([
     prisma.organization.findMany({
       orderBy: {
         name: "asc",
@@ -44,6 +50,7 @@ export default async function SuperAuditLogsPage({ searchParams }: PageProps) {
       },
     }),
     prisma.auditLog.findMany({
+      where: scope === "ai" ? { action: { startsWith: "ai." } } : undefined,
       distinct: ["action"],
       orderBy: {
         action: "asc",
@@ -52,11 +59,19 @@ export default async function SuperAuditLogsPage({ searchParams }: PageProps) {
         action: true,
       },
     }),
-    prisma.auditLog.findMany({
+    prisma.auditLog.groupBy({
+      by: ["organizationId"],
       where: {
-        ...(organizationId ? { organizationId } : {}),
-        ...(action ? { action } : {}),
+        action: {
+          startsWith: "ai.",
+        },
       },
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.auditLog.findMany({
+      where,
       orderBy: {
         createdAt: "desc",
       },
@@ -77,6 +92,10 @@ export default async function SuperAuditLogsPage({ searchParams }: PageProps) {
       },
     }),
   ]);
+  const organizationById = new Map(organizations.map((organization) => [organization.id, organization]));
+  const topAiUsageByOrganization = aiUsageByOrganization
+    .sort((a, b) => b._count._all - a._count._all)
+    .slice(0, 5);
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] p-8 text-[#1E293B]">
@@ -89,7 +108,25 @@ export default async function SuperAuditLogsPage({ searchParams }: PageProps) {
           </p>
         </div>
 
-        <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_1fr_auto]">
+        <div className="grid gap-4 md:grid-cols-3">
+          {topAiUsageByOrganization.map((usage) => {
+            const organization = usage.organizationId ? organizationById.get(usage.organizationId) : null;
+
+            return (
+              <div key={usage.organizationId ?? "global"} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                  <BrainCircuit size={20} />
+                </div>
+                <p className="text-sm font-semibold text-slate-900">{organization?.name ?? "Global"}</p>
+                <p className="text-xs text-slate-500">{organization?.slug ?? "-"}</p>
+                <p className="mt-3 text-2xl font-black text-slate-950">{usage._count._all.toLocaleString("es-MX")}</p>
+                <p className="text-xs text-slate-500">eventos de IA auditados</p>
+              </div>
+            );
+          })}
+        </div>
+
+        <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_1fr_1fr_auto]">
           <label className="space-y-1 text-sm font-medium text-slate-700">
             <span className="inline-flex items-center gap-2"><Building2 size={16} /> Clinica</span>
             <select name="organizationId" defaultValue={organizationId} className="h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-teal-400">
@@ -99,6 +136,14 @@ export default async function SuperAuditLogsPage({ searchParams }: PageProps) {
                   {organization.name} ({organization.slug})
                 </option>
               ))}
+            </select>
+          </label>
+
+          <label className="space-y-1 text-sm font-medium text-slate-700">
+            <span className="inline-flex items-center gap-2"><BrainCircuit size={16} /> Tipo</span>
+            <select name="scope" defaultValue={scope} className="h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-teal-400">
+              <option value="">Todas las acciones</option>
+              <option value="ai">Acciones de IA</option>
             </select>
           </label>
 

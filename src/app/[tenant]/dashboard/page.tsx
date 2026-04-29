@@ -3,7 +3,10 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import NewsFeed from "@/components/dashboard/NewsFeed";
+import { ValueInsightsWidget } from "@/components/dashboard/ValueInsightsWidget";
 import { getDailyAppointmentsForTenant } from "@/actions/appointment";
+import { getMonthlyValueMetrics } from "@/lib/metrics-service";
+import { prisma } from "@/lib/prisma";
 
 type DashboardAppointment = {
   id: string;
@@ -17,12 +20,28 @@ type DashboardAppointment = {
 
 export default async function DoctorDashboard({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await params;
-  const appointments = await getDailyAppointmentsForTenant(tenant, new Date()) as DashboardAppointment[];
+  const organization = await prisma.organization.findUnique({
+    where: {
+      slug: tenant,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+  const [appointments, valueMetrics] = await Promise.all([
+    getDailyAppointmentsForTenant(tenant, new Date()) as Promise<DashboardAppointment[]>,
+    organization ? getMonthlyValueMetrics(organization.id) : null,
+  ]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
       {/* Columna Principal: Timeline de Citas */}
       <div className="lg:col-span-2 space-y-6">
+        {organization && valueMetrics ? (
+          <ValueInsightsWidget clinicName={organization.name} metrics={valueMetrics} />
+        ) : null}
+
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-2xl font-bold text-slate-800">Citas de Hoy</h2>
           <Link

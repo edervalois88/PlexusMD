@@ -18,12 +18,12 @@ const getCalendarAuth = () => {
     return new google.auth.JWT({
       email: clientEmail,
       key: privateKey,
-      scopes: ["https://www.googleapis.com/auth/calendar.freebusy"],
+      scopes: ["https://www.googleapis.com/auth/calendar"],
     });
   }
 
   return new google.auth.GoogleAuth({
-    scopes: ["https://www.googleapis.com/auth/calendar.freebusy"],
+    scopes: ["https://www.googleapis.com/auth/calendar"],
   });
 };
 
@@ -95,5 +95,48 @@ export class GoogleCalendarService {
     }
 
     return slots;
+  }
+
+  async isSlotAvailable(startTime: Date, endTime: Date) {
+    const slots = await this.checkAvailability(startTime);
+    return slots.some((slot) => {
+      const slotStart = new Date(slot.start);
+      const slotEnd = new Date(slot.end);
+
+      return slotStart <= startTime && slotEnd >= endTime;
+    });
+  }
+
+  async createEvent(input: {
+    summary: string;
+    description?: string;
+    startTime: Date;
+    endTime: Date;
+    attendeeEmail?: string | null;
+  }) {
+    const auth = getCalendarAuth();
+    const calendar = google.calendar({ version: "v3", auth });
+
+    const response = await calendar.events.insert({
+      calendarId: this.calendarId,
+      requestBody: {
+        summary: input.summary,
+        description: input.description,
+        start: {
+          dateTime: input.startTime.toISOString(),
+          timeZone: process.env.CALENDAR_TIME_ZONE ?? "America/Mexico_City",
+        },
+        end: {
+          dateTime: input.endTime.toISOString(),
+          timeZone: process.env.CALENDAR_TIME_ZONE ?? "America/Mexico_City",
+        },
+        attendees: input.attendeeEmail ? [{ email: input.attendeeEmail }] : undefined,
+      },
+    });
+
+    return {
+      id: response.data.id ?? null,
+      htmlLink: response.data.htmlLink ?? null,
+    };
   }
 }

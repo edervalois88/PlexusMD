@@ -1,159 +1,132 @@
-"use client";
-
-import { useState } from "react";
 import dayjs from "dayjs";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Calendar as CalendarIcon, User } from "lucide-react";
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/dist/style.css";
-import { use } from "react";
+import { CalendarDays, Clock3, CreditCard, UserRound } from "lucide-react";
 
-export default function AgendaPage({ params }: { params: Promise<{ tenant: string }> }) {
-  use(params);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  
-  // Grid de 30 minutos (Ej: 09:00 a 14:00)
-  const timeSlots = Array.from({ length: 11 }, (_, i) => {
-    const hour = Math.floor(i / 2) + 9;
-    const minutes = i % 2 === 0 ? "00" : "30";
-    return `${hour.toString().padStart(2, "0")}:${minutes}`;
+import { getDailyAppointmentsForTenant } from "@/actions/appointment";
+import { prisma } from "@/lib/prisma";
+
+import { AppointmentForm } from "./AppointmentForm";
+
+type PageProps = {
+  params: Promise<{ tenant: string }>;
+};
+
+type AppointmentRow = {
+  id: string;
+  start_time: Date;
+  status: string;
+  payment_status: string;
+  patient_id: string;
+  doctor_id: string;
+};
+
+const formatTime = (date: Date) =>
+  new Intl.DateTimeFormat("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(date));
+
+export default async function AgendaPage({ params }: PageProps) {
+  const { tenant } = await params;
+  const organization = await prisma.organization.findUnique({
+    where: {
+      slug: tenant,
+    },
+    select: {
+      id: true,
+      name: true,
+      patients: {
+        orderBy: {
+          full_name: "asc",
+        },
+        take: 80,
+        select: {
+          id: true,
+          full_name: true,
+        },
+      },
+      users: {
+        orderBy: {
+          email: "asc",
+        },
+        select: {
+          id: true,
+          email: true,
+        },
+      },
+    },
   });
-  
-  // Citas mockeadas
-  const appointments = [
-    { time: "09:00", status: "occupied", patient: "Juan Pérez", reason: "Revisión anual", age: 45 },
-    { time: "09:30", status: "available" },
-    { time: "10:00", status: "occupied", patient: "María García", reason: "Dolor abdominal", age: 32 },
-    { time: "10:30", status: "available" },
-    { time: "11:00", status: "available" },
-    { time: "11:30", status: "occupied", patient: "Carlos Ruiz", reason: "Resultados labs", age: 58 },
-    { time: "12:00", status: "available" },
-  ];
 
-  const handleScheduleAppointment = async () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      alert("En producción, esto redirigirá a Stripe Checkout.");
-      setIsProcessing(false);
-      setIsModalOpen(false);
-    }, 1000);
-  };
+  if (!organization) {
+    return null;
+  }
+
+  const appointments = (await getDailyAppointmentsForTenant(tenant, new Date())) as AppointmentRow[];
+  const patientById = new Map(organization.patients.map((patient) => [patient.id, patient.full_name]));
+  const doctorById = new Map(organization.users.map((doctor) => [doctor.id, doctor.email]));
 
   return (
-    <div className="space-y-6 flex gap-6 h-[calc(100vh-6rem)]">
-      
-      {/* Columna Izquierda: Selector de Fechas (react-day-picker) */}
-      <div className="w-[300px] flex-shrink-0 bg-white rounded-2xl shadow-sm border border-slate-200/50 p-4">
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="w-full flex items-center justify-center gap-2 mb-6 px-4 py-3 bg-[#14B8A6] hover:bg-[#119e8f] text-white rounded-xl shadow-sm transition-colors font-medium"
-        >
-          <Plus size={20} />
-          Nueva Cita
-        </button>
-        <div className="day-picker-wrapper">
-          <DayPicker 
-            mode="single" 
-            selected={selectedDate} 
-            onSelect={setSelectedDate}
-            modifiersClassNames={{
-              selected: "bg-[#14B8A6] text-white rounded-xl font-bold",
-              today: "text-[#14B8A6] font-bold"
-            }}
-          />
+    <div className="grid min-h-[calc(100vh-6rem)] gap-6 p-6 xl:grid-cols-[360px_1fr]">
+      <aside className="space-y-5">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-bold uppercase tracking-[0.22em] text-teal-700">Agenda</p>
+          <h1 className="mt-2 text-2xl font-black text-slate-950">{organization.name}</h1>
+          <p className="mt-2 text-sm text-slate-500">{dayjs().format("DD MMMM YYYY")}</p>
         </div>
-      </div>
 
-      {/* Columna Derecha: Cuadrícula de 30 min */}
-      <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200/50 p-6 overflow-y-auto">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-          <CalendarIcon className="text-[#14B8A6]" size={24} />
-          <h2 className="text-xl font-bold text-[#1E293B]">
-            {selectedDate ? dayjs(selectedDate).format("DD MMMM, YYYY") : "Selecciona una fecha"}
-          </h2>
+        <AppointmentForm
+          tenant={tenant}
+          patients={organization.patients.map((patient) => ({ id: patient.id, fullName: patient.full_name }))}
+          doctors={organization.users}
+        />
+      </aside>
+
+      <main className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-11 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+              <CalendarDays size={22} />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-950">Citas reales de hoy</h2>
+              <p className="text-sm text-slate-500">Postgres + Google Calendar + WhatsApp + Auditoria</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-600">
+            {appointments.length} citas
+          </span>
         </div>
 
         <div className="space-y-3">
-          {timeSlots.map((time, index) => {
-            const slot = appointments.find(a => a.time === time) || { time, status: "available" };
-            
-            return (
-              <div key={index} className="flex group relative">
-                <div className="w-20 text-slate-400 font-medium pt-3">{time}</div>
-                <div className="flex-1 relative">
-                  <div
-                    onClick={() => slot.status === "available" && setIsModalOpen(true)}
-                    className={`p-4 rounded-xl border transition-all h-full ${
-                      slot.status === "occupied"
-                        ? "bg-[#1E293B] border-[#1E293B] text-white shadow-md relative overflow-visible"
-                        : "bg-[#14B8A6]/5 border-[#14B8A6]/20 hover:border-[#14B8A6] cursor-pointer border-dashed"
-                    }`}
-                  >
-                    {slot.status === "occupied" ? (
-                      <div className="flex justify-between items-center">
-                        <p className="font-semibold">{slot.patient}</p>
-                        <span className="text-xs bg-white/20 px-2 py-1 rounded-lg">Confirmada</span>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-slate-400">Disponible</p>
-                    )}
-
-                    {/* Hover Card (Framer Motion) */}
-                    {slot.status === "occupied" && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        whileHover={{ opacity: 1, y: 0, scale: 1 }}
-                        className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 bg-white text-slate-800 p-4 rounded-xl shadow-xl border border-slate-100 z-10 pointer-events-none hidden group-hover:block"
-                      >
-                        <div className="flex items-center gap-2 mb-2 pb-2 border-b">
-                          <User size={16} className="text-[#14B8A6]" />
-                          <p className="font-bold">{slot.patient} ({slot.age}a)</p>
-                        </div>
-                        <p className="text-sm"><span className="font-semibold">Motivo:</span> {slot.reason}</p>
-                      </motion.div>
-                    )}
-                  </div>
-                </div>
+          {appointments.map((appointment) => (
+            <article key={appointment.id} className="grid gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 md:grid-cols-[90px_1fr_auto]">
+              <div className="flex items-center gap-2 font-bold text-slate-950">
+                <Clock3 size={16} className="text-teal-700" />
+                {formatTime(appointment.start_time)}
               </div>
-            );
-          })}
+              <div>
+                <div className="flex items-center gap-2">
+                  <UserRound size={16} className="text-slate-400" />
+                  <p className="font-semibold text-slate-950">{patientById.get(appointment.patient_id) ?? `Paciente ${appointment.patient_id.slice(0, 8)}`}</p>
+                </div>
+                <p className="mt-1 text-sm text-slate-500">{doctorById.get(appointment.doctor_id) ?? "Medico asignado"}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-bold text-teal-700">{appointment.status}</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600">
+                  <CreditCard size={12} />
+                  {appointment.payment_status}
+                </span>
+              </div>
+            </article>
+          ))}
+
+          {appointments.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 p-10 text-center text-slate-500">
+              No hay citas reales para hoy.
+            </div>
+          ) : null}
         </div>
-      </div>
-
-      {/* Modal Framer Motion (Nueva Cita) */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 m-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-[#1E293B]">Agendar Nueva Cita</h3>
-                <button onClick={() => setIsModalOpen(false)} className="p-1 text-slate-400 hover:text-[#1E293B] bg-slate-100/50 hover:bg-slate-200 rounded-full transition-colors"><X size={20} /></button>
-              </div>
-              <div className="space-y-4">
-                <div><label className="block text-sm font-medium mb-1">Paciente</label><input type="text" className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#14B8A6] outline-none" /></div>
-                <div className="pt-4 flex gap-3">
-                  <button onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 bg-slate-100 text-[#1E293B] hover:bg-slate-200 rounded-xl font-medium">Cancelar</button>
-                  <button onClick={handleScheduleAppointment} disabled={isProcessing} className="flex-1 px-4 py-2 bg-[#14B8A6] text-white hover:bg-[#119e8f] rounded-xl font-medium disabled:opacity-50">
-                    {isProcessing ? "Procesando..." : "Proceder al Pago"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <style jsx global>{`
-        .day-picker-wrapper .rdp {
-          --rdp-cell-size: 38px;
-          --rdp-accent-color: #14B8A6;
-          --rdp-background-color: #f0fdfa;
-          margin: 0;
-        }
-      `}</style>
+      </main>
     </div>
   );
 }

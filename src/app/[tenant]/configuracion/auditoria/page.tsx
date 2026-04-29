@@ -3,7 +3,9 @@ import { getServerSession } from "next-auth/next";
 import { Activity, Filter } from "lucide-react";
 
 import { authOptions } from "@/auth";
+import { getMonthlyValueMetrics } from "@/lib/metrics-service";
 import { prisma } from "@/lib/prisma";
+import { ValueReportButton } from "./ValueReportButton";
 
 export const metadata = {
   title: "Auditoria",
@@ -52,7 +54,7 @@ export default async function TenantAuditPage({ params, searchParams }: PageProp
 
   const action = filters.action || "";
 
-  const [actionRows, logs] = await Promise.all([
+  const [actionRows, logs, valueMetrics] = await Promise.all([
     prisma.auditLog.findMany({
       where: {
         organizationId: organization.id,
@@ -83,6 +85,7 @@ export default async function TenantAuditPage({ params, searchParams }: PageProp
         },
       },
     }),
+    getMonthlyValueMetrics(organization.id),
   ]);
 
   return (
@@ -93,6 +96,14 @@ export default async function TenantAuditPage({ params, searchParams }: PageProp
         <p className="mt-2 max-w-2xl text-sm text-slate-600">
           Movimientos recientes del personal de la clinica.
         </p>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div>
+          <h2 className="font-bold text-slate-950">Reporte mensual de valor</h2>
+          <p className="text-sm text-slate-500">Descarga un resumen ejecutivo con seguridad, ahorro y uso auditado de IA.</p>
+        </div>
+        <ValueReportButton clinicName={organization.name} metrics={valueMetrics} />
       </div>
 
       <form className="grid max-w-xl gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_auto]">

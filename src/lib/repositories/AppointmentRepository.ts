@@ -5,7 +5,7 @@ import { createAuditLog } from "../audit";
 
 type AppointmentCreateInput = Omit<Partial<AppointmentEntity>, "id" | "organization_id" | "createdAt" | "updatedAt">;
 type AppointmentUpdateInput = QueryDeepPartialEntity<
-  Pick<AppointmentEntity, "doctor_id" | "patient_id" | "start_time" | "status" | "payment_status">
+  Pick<AppointmentEntity, "doctor_id" | "patient_id" | "start_time" | "status" | "payment_status" | "google_event_id">
 >;
 
 export class AppointmentRepository {

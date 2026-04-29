@@ -1,10 +1,13 @@
 "use server";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { buildAiAuditPayload } from "@/lib/ai-audit";
+import { createAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const apiKey = process.env.GEMINI_API_KEY || "";
+const SIDE_DOCTOR_MODEL = "gemini-1.5-pro";
 
 const systemInstruction = `Actúas como un asistente médico de élite. Tu objetivo es analizar el expediente y extraer:
 1. Alertas críticas: alergias, duplicidades e interacciones medicamentosas potenciales,
@@ -23,7 +26,7 @@ export async function analyzePatientInsight(patientHistory: unknown, reason: str
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro",
+      model: SIDE_DOCTOR_MODEL,
       systemInstruction: systemInstruction,
     });
 
@@ -34,6 +37,7 @@ ${JSON.stringify(patientHistory, null, 2)}`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
+    const responseText = response.text();
     
     // Telemetría: Incrementar cuota si se pasa el organizationId
     if (organizationId) {
@@ -43,7 +47,14 @@ ${JSON.stringify(patientHistory, null, 2)}`;
       });
     }
 
-    return response.text();
+    await createAuditLog({
+      organizationId,
+      action: "ai.side_doctor.insight_generated",
+      resource: "SideDoctor",
+      payload: buildAiAuditPayload(responseText, response, SIDE_DOCTOR_MODEL),
+    });
+
+    return responseText;
   } catch (error) {
     console.error("Error calling Gemini API:", error);
     throw new Error("Failed to generate AI insights.");
