@@ -20,7 +20,8 @@ const aiTenantRatelimit = new Ratelimit({
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = request.headers.get('host') || '';
-  const ip = request.ip ?? '127.0.0.1';
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  const ip = typeof forwardedFor === 'string' ? forwardedFor.split(',')[0] : '127.0.0.1';
 
   // 1. Rate Limiting Global
   try {
