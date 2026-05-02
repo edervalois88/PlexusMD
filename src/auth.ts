@@ -59,7 +59,9 @@ const adapter = {
     const organization = await resolveOrganizationForEmail(user.email);
 
     if (!organization) {
-      throw new Error("No active organization is available for Google sign-in.");
+      // En NextAuth, las excepciones en el adapter suelen lanzar un error.
+      // Para redirigir, lo ideal es capturar este estado en el signIn callback.
+      throw new Error("UNREGISTERED_EMAIL");
     }
 
     const role = process.env.SUPER_ADMIN_EMAIL?.toLowerCase() === user.email.toLowerCase() ? "SUPERADMIN" : "DOCTOR";
@@ -93,6 +95,14 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        // La validación ocurre en el adapter createUser.
+        // Si todo está bien, devuelve true.
+        return true;
+      }
+      return true;
+    },
     async jwt({ token, user, trigger }) {
       const email = user?.email ?? token.email;
       const shouldRefresh = trigger === "signIn" || trigger === "signUp" || !token.organizationId || !token.tenantSlug;
