@@ -23,7 +23,7 @@ const securityHeaders = [
   },
   {
     key: 'Content-Security-Policy',
-    value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://plexusmd-assets.s3.amazonaws.com; font-src 'self'; connect-src 'self' https://api.stripe.com;"
+    value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://plexusmd-assets.s3.amazonaws.com; font-src 'self'; connect-src 'self' https://api.stripe.com https://vitals.vercel-insights.com;"
   }
 ];
 
