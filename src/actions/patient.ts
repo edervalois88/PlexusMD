@@ -1,18 +1,14 @@
 "use server";
 
-import { PatientRepository } from "@/lib/repositories/PatientRepository";
-import { getDataSource, OrganizationEntity } from "@/lib/data-source";
+import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
 const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function getPatientForTenant(tenantSlug: string, patientId: string) {
   try {
-    const dataSource = await getDataSource();
-    const orgRepo = dataSource.getRepository(OrganizationEntity);
-
     // Buscar la organización por slug (tenant)
-    const organization = await orgRepo.findOne({
+    const organization = await prisma.organization.findUnique({
       where: { slug: tenantSlug },
     });
 
@@ -21,8 +17,18 @@ export async function getPatientForTenant(tenantSlug: string, patientId: string)
     }
 
     const patient = uuidLike.test(patientId)
-      ? await PatientRepository.findPatientForTenant(organization.id, patientId)
-      : await PatientRepository.findGoldenPatientForTenant(organization.id);
+      ? await prisma.patient.findFirst({
+          where: {
+            id: patientId,
+            organization_id: organization.id,
+          },
+        })
+      : await prisma.patient.findFirst({
+          where: {
+            organization_id: organization.id,
+            full_name: "Roberto Castañeda",
+          },
+        });
 
     if (!patient) {
       throw new Error("Paciente no encontrado o no pertenece a esta organización.");
