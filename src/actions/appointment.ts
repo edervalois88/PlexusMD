@@ -10,8 +10,6 @@ import { GoogleCalendarService } from "@/lib/google-calendar";
 import { getOrganizationSettings } from "@/lib/organization-settings";
 import { createAppointmentPaymentLink } from "@/lib/payments";
 import { prisma } from "@/lib/prisma";
-import { AppointmentRepository } from "@/lib/repositories/AppointmentRepository";
-import { getDataSource, OrganizationEntity } from "@/lib/data-source";
 import { logger } from "@/lib/logger";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
@@ -34,24 +32,26 @@ const canUseGoogleCalendar = () => Boolean(process.env.GOOGLE_CLIENT_EMAIL && pr
 
 export async function getDailyAppointmentsForTenant(tenantSlug: string, date: Date) {
   try {
-    const dataSource = await getDataSource();
-    const orgRepo = dataSource.getRepository(OrganizationEntity);
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
 
-    // 1. Obtener la Organización
-    const organization = await orgRepo.findOne({
-      where: { slug: tenantSlug },
+    return await prisma.appointment.findMany({
+      where: {
+        organization: {
+          slug: tenantSlug,
+        },
+        start_time: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      orderBy: {
+        start_time: 'asc',
+      },
     });
-
-    if (!organization) {
-      throw new Error("Organización no encontrada.");
-    }
-
-    // 2. Obtener Citas usando el Patrón de Repositorio (Regla de Oro: organization_id implícito)
-    const appointments = await AppointmentRepository.findDailyAppointmentsForTenant(organization.id, date);
-
-    return appointments;
   } catch (error: unknown) {
-    // Manejo de Error Global
     const message = error instanceof Error ? error.message : String(error);
     const errorId = logger.error("Error al obtener la agenda diaria", { tenantSlug, date, error: message });
     throw new Error(`Ocurrió un error interno. Código de referencia: ${errorId}`);
