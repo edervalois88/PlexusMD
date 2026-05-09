@@ -19,11 +19,35 @@ const pool = new Pool({
 });
 const adapter = new PrismaPg(pool);
 
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    adapter,
-    log: ['query'],
-  });
+const basePrisma = new PrismaClient({
+  adapter,
+  log: ['query'],
+});
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+export const prisma = basePrisma.$extends({
+  query: {
+    $allModels: {
+      async $allOperations({ model, operation, args, query }) {
+        const result = await query(args);
+
+        const mutationOperations = ['create', 'update', 'delete', 'upsert', 'createMany', 'updateMany', 'deleteMany'];
+        
+        if (mutationOperations.includes(operation) && model !== 'AuditLog') {
+          // Log the mutation
+          await (basePrisma as any).auditLog.create({
+            data: {
+              action: `${model}.${operation}`,
+              resource: model,
+              payload: args as any,
+              // userId: To be added from context later if possible
+            }
+          }).catch(err => console.error("Audit log failed", err));
+        }
+        
+        return result;
+      },
+    },
+  },
+});
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma as any;
