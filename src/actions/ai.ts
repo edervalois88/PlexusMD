@@ -5,6 +5,7 @@ import { buildAiAuditPayload } from "@/lib/ai-audit";
 import { createAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { kv } from "@vercel/kv";
 
 const apiKey = process.env.GEMINI_API_KEY || "";
 const SIDE_DOCTOR_MODEL = "gemini-1.5-pro";
@@ -21,6 +22,16 @@ export async function analyzePatientInsight(patientHistory: unknown, reason: str
 
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured.");
+  }
+
+  // Rate Limiting con Vercel KV
+  if (organizationId) {
+    const limitKey = `ai_limit:${organizationId}`;
+    const usage = await kv.get<number>(limitKey) || 0;
+
+    if (usage >= 100) {
+      throw new Error("AI daily limit reached for this organization.");
+    }
   }
 
   try {
@@ -41,6 +52,10 @@ ${JSON.stringify(patientHistory, null, 2)}`;
     
     // Telemetría: Incrementar cuota si se pasa el organizationId
     if (organizationId) {
+      const limitKey = `ai_limit:${organizationId}`;
+      await kv.incr(limitKey);
+      await kv.expire(limitKey, 86400); // 24h
+
       await prisma.organization.update({
         where: { id: organizationId },
         data: { ai_usage_count: { increment: 1 } },
