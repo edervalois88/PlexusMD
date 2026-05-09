@@ -1,6 +1,6 @@
 import { Sidebar } from "@/components/Sidebar";
 import { PageWrapper } from "@/components/PageWrapper";
-import { getDataSource, OrganizationEntity } from "@/lib/data-source";
+import { prisma } from "@/lib/prisma";
 import { ReactNode } from "react";
 import { notFound } from "next/navigation";
 
@@ -12,14 +12,13 @@ export default async function TenantLayout({
   params: Promise<{ tenant: string }>;
 }) {
   const resolvedParams = await params;
-  const dataSource = await getDataSource();
-  const organization = await dataSource.getRepository(OrganizationEntity).findOne({
+  const organization = await prisma.organization.findUnique({
+    where: {
+      slug: resolvedParams.tenant,
+    },
     select: {
       id: true,
       is_active: true,
-    },
-    where: {
-      slug: resolvedParams.tenant,
     },
   });
 

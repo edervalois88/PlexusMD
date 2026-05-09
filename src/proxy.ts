@@ -5,8 +5,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { jwtVerify } from "jose";
 import { getToken } from "next-auth/jwt";
 
-import { getDataSource, OrganizationEntity } from "@/lib/data-source";
-import { UserEntity } from "@/lib/data-source";
+import { prisma } from "@/lib/prisma";
 
 const TENANT_CACHE_TTL_SECONDS = 60;
 
@@ -76,12 +75,11 @@ const resolveLegacyAuthContext = async (request: NextRequest): Promise<RequestAu
       return { role, email: undefined };
     }
 
-    const dataSource = await getDataSource();
-    const user = await dataSource.getRepository(UserEntity).findOne({
+    const user = await prisma.user.findUnique({
       where: {
         email,
       },
-      relations: {
+      include: {
         organization: true,
       },
     });
@@ -93,7 +91,7 @@ const resolveLegacyAuthContext = async (request: NextRequest): Promise<RequestAu
     return {
       role: user.role ?? role,
       email,
-      organizationId: user.organization_id,
+      organizationId: user.organization_id ?? undefined,
       tenantSlug: user.organization.slug,
     };
   } catch {
@@ -148,15 +146,14 @@ const getOrganizationStatus = async (tenantSlug: string) => {
     console.warn("Tenant activation cache read failed, falling back to Postgres.", error);
   }
 
-  const dataSource = await getDataSource();
-  const organization = await dataSource.getRepository(OrganizationEntity).findOne({
+  const organization = await prisma.organization.findUnique({
+    where: {
+      slug: tenantSlug,
+    },
     select: {
       id: true,
       slug: true,
       is_active: true,
-    },
-    where: {
-      slug: tenantSlug,
     },
   });
 
@@ -195,16 +192,15 @@ const getDefaultTenantSlug = async () => {
     console.warn("Default tenant cache read failed, falling back to Postgres.", error);
   }
 
-  const dataSource = await getDataSource();
-  const organization = await dataSource.getRepository(OrganizationEntity).findOne({
-    select: {
-      slug: true,
-    },
+  const organization = await prisma.organization.findFirst({
     where: {
       is_active: true,
     },
-    order: {
-      createdAt: "ASC",
+    select: {
+      slug: true,
+    },
+    orderBy: {
+      createdAt: "asc",
     },
   });
 
