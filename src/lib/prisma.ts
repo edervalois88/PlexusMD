@@ -41,7 +41,7 @@ export const prisma = basePrisma.$extends({
               payload: args as any,
               // userId: To be added from context later if possible
             }
-          }).catch(err => console.error("Audit log failed", err));
+          }).catch((err: unknown) => console.error("Audit log failed", err));
         }
         
         return result;
