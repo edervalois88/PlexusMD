@@ -110,7 +110,7 @@ export function RegistrationForm() {
               <Link href="/politica-whatsapp" target="_blank" rel="noopener noreferrer" className="text-teal-700 font-semibold hover:underline">
                 Política de Mensajería
               </Link>
-              . Entiendo que puedo darme de baja en cualquier momento respondiendo "BAJA".
+              . Entiendo que puedo darme de baja en cualquier momento respondiendo &quot;BAJA&quot;.
             </span>
           </label>
 

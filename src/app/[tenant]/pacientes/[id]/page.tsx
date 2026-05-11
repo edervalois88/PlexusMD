@@ -9,7 +9,7 @@ import { SideDoctorPanel } from "@/components/side-doctor/SideDoctorPanel";
 import { FileText, AlertTriangle, Activity, CheckCircle2, Wand2, Search, Stethoscope } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getPatientForTenant } from "@/actions/patient";
+import { getPatientForTenant, updatePatientHistory } from "@/actions/patient";
 import vademecum from "@/data/vademecum.json";
 
 type PatientHistory = {
@@ -103,16 +103,30 @@ export default function PatientEMRPage({ params }: { params: Promise<{ tenant: s
 
     const saveToDB = async () => {
       setIsSaving(true);
-      // Simulate API call to save SOAP note
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setServerSoap(debouncedSoap);
-      setIsSaving(false);
+      try {
+        const updatedHistory = {
+          ...patientHistory,
+          pastNotes: [
+            { date: new Date().toISOString(), note: debouncedSoap },
+            ...(patientHistory.pastNotes ?? []),
+          ].slice(0, 20),
+        };
+
+        const result = await updatePatientHistory(resolvedParams.id, updatedHistory);
+        if (result.success) {
+          setServerSoap(debouncedSoap);
+        }
+      } catch (error) {
+        console.error("Failed to save note:", error);
+      } finally {
+        setIsSaving(false);
+      }
     };
 
-    if (debouncedSoap !== serverSoap) {
+    if (debouncedSoap && debouncedSoap !== serverSoap) {
       saveToDB();
     }
-  }, [debouncedSoap, serverSoap]);
+  }, [debouncedSoap, serverSoap, patientHistory, resolvedParams.id]);
 
   // Prescription Modal State
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);

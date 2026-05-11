@@ -5,8 +5,6 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { jwtVerify } from "jose";
 import { getToken } from "next-auth/jwt";
 
-const TENANT_CACHE_TTL_SECONDS = 60;
-
 const globalRatelimit = new Ratelimit({
   redis: kv,
   limiter: Ratelimit.slidingWindow(100, "1 m"),

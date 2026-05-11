@@ -1,28 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { basePrisma } from './prisma-instance';
+import { getCurrentUserId } from './session-info';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
-
-const connectionString = process.env.POSTGRES_URL;
-
-if (!connectionString) {
-  throw new Error('POSTGRES_URL is required to initialize Prisma.');
-}
-
-const pool = new Pool({
-  connectionString,
-  max: Number(process.env.POSTGRES_POOL_MAX ?? 5),
-  idleTimeoutMillis: Number(process.env.POSTGRES_IDLE_TIMEOUT_MS ?? 10_000),
-  connectionTimeoutMillis: Number(process.env.POSTGRES_CONNECTION_TIMEOUT_MS ?? 5_000),
-  allowExitOnIdle: true,
-});
-const adapter = new PrismaPg(pool);
-
-const basePrisma = new PrismaClient({
-  adapter,
-  log: ['query'],
-});
 
 export const prisma = basePrisma.$extends({
   query: {
@@ -33,15 +13,24 @@ export const prisma = basePrisma.$extends({
         const mutationOperations = ['create', 'update', 'delete', 'upsert', 'createMany', 'updateMany', 'deleteMany'];
         
         if (mutationOperations.includes(operation) && model !== 'AuditLog') {
-          // Log the mutation
-          await (basePrisma as any).auditLog.create({
+          // Log the mutation automatically
+          // We try to get the userId from the session if we are in a server context
+          const userId = await getCurrentUserId();
+          
+          const payload = args as Record<string, unknown>;
+          const data = payload?.data as Record<string, unknown> | undefined;
+          const where = payload?.where as Record<string, unknown> | undefined;
+          const organizationId = (data?.organization_id || where?.organization_id || null) as string | null;
+
+          await basePrisma.auditLog.create({
             data: {
               action: `${model}.${operation}`,
               resource: model,
-              payload: args as any,
-              // userId: To be added from context later if possible
+              payload: payload as import("@prisma/client").Prisma.InputJsonValue,
+              userId: userId,
+              organizationId: organizationId,
             }
-          }).catch((err: unknown) => console.error("Audit log failed", err));
+          }).catch((err: unknown) => console.error("Automatic Audit log failed", err));
         }
         
         return result;
@@ -50,4 +39,4 @@ export const prisma = basePrisma.$extends({
   },
 });
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma as any;
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma as unknown as PrismaClient;

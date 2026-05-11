@@ -41,7 +41,7 @@ export default function WhatsappPolicyPage() {
             <ul className="list-disc pl-5 mt-2 space-y-2">
               <li>El opt-in se obtiene a través de flujos claros en nuestra plataforma web.</li>
               <li>El usuario comprende exactamente qué tipo de mensajes recibirá (recordatorios de citas, notificaciones médicas, confirmaciones).</li>
-              <li>Mantenemos un registro con el "timestamp" exacto del momento en que el usuario otorgó su permiso.</li>
+              <li>Mantenemos un registro con el &quot;timestamp&quot; exacto del momento en que el usuario otorgó su permiso.</li>
             </ul>
           </section>
 
@@ -58,7 +58,7 @@ export default function WhatsappPolicyPage() {
               Reconocemos el derecho de todo usuario a detener la comunicación en cualquier momento.
             </p>
             <p className="mt-2">
-              <strong>Cómo darse de baja:</strong> Cualquier usuario puede detener los mensajes simplemente respondiendo a nuestro canal de WhatsApp con la palabra <strong>"BAJA"</strong>, <strong>"STOP"</strong> o solicitándolo explícitamente. Nuestro sistema cesará automáticamente el envío de nuevas notificaciones.
+              <strong>Cómo darse de baja:</strong> Cualquier usuario puede detener los mensajes simplemente respondiendo a nuestro canal de WhatsApp con la palabra <strong>&quot;BAJA&quot;</strong>, <strong>&quot;STOP&quot;</strong> o solicitándolo explícitamente. Nuestro sistema cesará automáticamente el envío de nuevas notificaciones.
             </p>
           </section>
 

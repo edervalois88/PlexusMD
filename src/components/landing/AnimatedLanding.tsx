@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, LogIn, ShieldCheck, Sparkles, MessageSquare, BrainCircuit, Users, CheckCircle2, ChevronRight, Smartphone, Activity, Stethoscope } from "lucide-react";
+import { ArrowRight, ShieldCheck, Sparkles, BrainCircuit, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 
 export function AnimatedLanding() {
@@ -154,7 +154,7 @@ export function AnimatedLanding() {
                     <span className="text-white font-bold text-sm">Side Doctor AI</span>
                   </div>
                   <p className="text-slate-300 text-xs leading-relaxed relative z-10">
-                    "Sugiero revisar los niveles de glucosa basados en el historial reciente del paciente."
+                    &quot;Sugiero revisar los niveles de glucosa basados en el historial reciente del paciente.&quot;
                   </p>
                 </div>
               </div>
@@ -167,89 +167,123 @@ export function AnimatedLanding() {
         </motion.div>
       </motion.section>
 
-      {/* Side Doctor Section */}
-      <section className="relative z-20 py-32 bg-slate-900 text-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="grid lg:grid-cols-2 gap-16 items-center"
-          >
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-500/10 text-teal-400 text-sm font-bold mb-8 border border-teal-500/20">
-                <BrainCircuit size={16} />
-                Exclusivo de Elite
+      {/* Side Doctor Section - IA Validation */}
+      <section className="relative py-40 bg-slate-950 text-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-20 items-start">
+          {/* Columna Texto Sticky */}
+          <div className="lg:sticky lg:top-32 h-fit">
+            <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ margin: "-100px" }}>
+              <span className="text-teal-400 font-bold tracking-widest uppercase text-sm">Seguridad Clínica Elevada</span>
+              <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight">Validación Clínica Inteligente</h2>
+              <p className="mt-8 text-slate-400 text-xl leading-relaxed">Detección proactiva de riesgos y ahorro de tiempo mediante el escaneo automatizado contra Vademécum actualizado.</p>
+            </motion.div>
+          </div>
+
+          {/* Columna Visual (Receta) */}
+          <div className="relative flex justify-center py-10">
+            <motion.div 
+              className="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 text-slate-800 relative overflow-hidden"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+            >
+              {/* Línea de Escaneo */}
+              <motion.div 
+                className="absolute top-0 left-0 w-full h-1 bg-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.8)] z-20"
+                animate={{ top: ["0%", "100%", "0%"] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              />
+
+              {/* Contenido Receta */}
+              <div className="border-b-2 border-slate-100 pb-6 mb-6">
+                <div className="h-5 w-32 bg-slate-200 rounded-full mb-3" />
+                <div className="h-3 w-20 bg-slate-100 rounded-full" />
               </div>
-              <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight leading-tight">
-                Conoce a tu <br/><span className="text-teal-400">Side Doctor.</span>
-              </h2>
-              <p className="text-xl text-slate-400 font-light leading-relaxed mb-8">
-                No es solo un expediente. Es un asistente clínico impulsado por IA Generativa que analiza el contexto del paciente, sugiere preguntas clave y genera reportes de valor automáticamente durante la consulta.
-              </p>
-              <ul className="space-y-5">
-                {[
-                  "Análisis predictivo de historial clínico.",
-                  "Generación automática de notas SOAP.",
-                  "Detección de interacciones medicamentosas.",
-                ].map((text, i) => (
-                  <li key={i} className="flex items-center gap-4 text-slate-300 font-medium text-lg">
-                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-teal-400 border border-white/10">
-                      <Activity size={16} />
-                    </div>
-                    {text}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div className="relative">
-               <div className="absolute inset-0 bg-gradient-to-tr from-teal-500/20 to-blue-500/20 rounded-[3rem] blur-3xl -z-10"></div>
-               <div className="bg-slate-800 border border-white/10 rounded-[2rem] p-8 shadow-2xl relative z-10 backdrop-blur-xl">
-                 <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center">
-                        <Stethoscope size={20} className="text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Análisis en tiempo real</h4>
-                        <p className="text-xs text-slate-400">Paciente: Carlos R.</p>
-                      </div>
-                    </div>
-                    <div className="text-xs bg-slate-700 px-3 py-1 rounded-full text-teal-400 font-mono">
-                      Analizando...
-                    </div>
-                 </div>
-                 <div className="space-y-4">
-                   <div className="bg-slate-900/50 p-4 rounded-xl border border-white/5">
-                     <p className="text-sm text-slate-300 leading-relaxed">
-                       Basado en los síntomas descritos de fatiga extrema y los laboratorios del mes pasado, el <strong className="text-teal-400">Side Doctor</strong> sugiere evaluar función tiroidea (TSH).
-                     </p>
-                   </div>
-                   <div className="flex justify-end gap-3 pt-4">
-                     <button className="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Descartar</button>
-                     <button className="text-sm font-semibold bg-white text-slate-900 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors">Agregar a órdenes</button>
-                   </div>
-                 </div>
-               </div>
-            </div>
-          </motion.div>
+              
+              <div className="space-y-6">
+                <div className="h-4 w-full bg-slate-50 rounded-full" />
+                <div className="h-4 w-5/6 bg-slate-50 rounded-full" />
+                
+                {/* Medicamento con Glow */}
+                <div className="p-5 bg-teal-50 border border-teal-100 rounded-2xl relative">
+                  <div className="h-4 w-40 bg-teal-200 rounded-full mb-2" />
+                  <div className="h-3 w-48 bg-teal-100 rounded-full" />
+                  <motion.div 
+                    className="absolute inset-0 border-2 border-teal-400 rounded-2xl"
+                    animate={{ opacity: [0, 1, 0], scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </div>
+
+                {/* Alerta de Interacción */}
+                <motion.div 
+                  className="p-4 bg-rose-50 border border-rose-100 rounded-2xl shadow-xl flex gap-4 items-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1 }}
+                >
+                  <div className="w-10 h-10 bg-rose-500 rounded-full flex items-center justify-center text-white font-bold text-xl">!</div>
+                  <div>
+                    <p className="text-xs font-black text-rose-900 uppercase tracking-tighter">Interacción Crítica</p>
+                    <p className="text-[11px] text-rose-700 font-medium">Riesgo detectado con Vademécum.</p>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Explicit Compliance Section (Preserved & Enhanced) */}
-      <section className="py-32 bg-white relative overflow-hidden">
+      {/* Agenda Autónoma Module - Timeline */}
+      <section className="relative py-40 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-20 items-start">
+          {/* Visual Columna (Timeline) */}
+          <div className="relative order-2 lg:order-1 flex justify-center">
+            <div className="space-y-16 relative">
+              <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-slate-100" />
+              
+              {[
+                { step: "1", title: "Cita Agendada", desc: "Paciente reserva desde su móvil." },
+                { step: "2", title: "Recordatorio WhatsApp", desc: "Enviado automáticamente 24h antes." },
+                { step: "3", title: "Confirmación Recibida", desc: "Estado actualizado en el dashboard." }
+              ].map((item, i) => (
+                <motion.div 
+                  key={i} 
+                  className="flex gap-10 items-start group"
+                  initial={{ opacity: 0.2, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ amount: 0.3 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-2xl z-10 font-black text-xl">
+                    {item.step}
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-bold text-slate-950">{item.title}</h4>
+                    <p className="text-slate-500 text-lg mt-1">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Texto Columna Sticky */}
+          <div className="lg:sticky lg:top-32 h-fit lg:order-2">
+            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ margin: "-100px" }}>
+              <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Operación 24/7</span>
+              <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Agenda Autónoma</h2>
+              <p className="mt-8 text-slate-500 text-xl leading-relaxed">Sin recepcionistas, sin errores. PlexusMD gestiona la disponibilidad y confirma cada cita automáticamente.</p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Explicit Compliance Section - Enhanced with Sticky/Parallax Support */}
+      <section className="relative bg-white py-20 lg:py-0 overflow-visible border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="grid lg:grid-cols-2 gap-20 items-center"
-          >
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-700 text-sm font-bold mb-8 border border-slate-200">
+          <div className="flex flex-col lg:flex-row-reverse gap-12 lg:gap-20">
+            {/* Right Column (Fixed Text on Scroll): Sticky Text */}
+            <div className="w-full lg:w-1/2 lg:min-h-screen flex flex-col justify-center py-12 lg:py-24 lg:sticky lg:top-0">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-slate-700 text-sm font-bold mb-8 border border-slate-200 w-fit">
                 <ShieldCheck size={16} className="text-teal-600" />
                 Cumplimiento WhatsApp Business
               </div>
@@ -276,7 +310,7 @@ export function AnimatedLanding() {
                   </div>
                   <div>
                     <h4 className="text-lg font-bold text-slate-900">Baja Inmediata (Opt-out)</h4>
-                    <p className="text-slate-500 mt-1">Los pacientes pueden detener los mensajes en milisegundos respondiendo "BAJA".</p>
+                    <p className="text-slate-500 mt-1">Los pacientes pueden detener los mensajes en milisegundos respondiendo &quot;BAJA&quot;.</p>
                   </div>
                 </div>
               </div>
@@ -287,46 +321,34 @@ export function AnimatedLanding() {
               </Link>
             </div>
 
-            <div className="relative">
-              <div className="bg-slate-50 p-1 rounded-[2.5rem] border border-slate-200 shadow-2xl relative z-10">
-                <div className="bg-white rounded-[2.3rem] p-8 md:p-12">
-                   <div className="space-y-6">
-                      <div className="flex items-start gap-4 p-5 rounded-2xl bg-teal-50 border border-teal-100 mt-2">
-                        <div className="w-5 h-5 rounded border-2 border-teal-600 bg-teal-600 flex items-center justify-center mt-0.5 flex-shrink-0">
-                          <CheckCircle2 size={14} className="text-white" />
-                        </div>
-                        <p className="text-sm text-slate-700 font-medium leading-relaxed">
-                          Acepto explícitamente recibir recordatorios de citas vía WhatsApp. Comprendo la Política de Mensajería y sé que puedo enviar "BAJA" para detener las comunicaciones.
-                        </p>
-                      </div>
-                      <div className="h-14 w-full bg-slate-900 rounded-xl mt-6 flex items-center justify-center text-white font-bold text-sm">
-                        Confirmar y Agendar
-                      </div>
-                   </div>
-                </div>
-              </div>
+            {/* Left Column: Parallax Visuals Space */}
+            <div className="w-full lg:w-1/2 relative py-12 lg:py-24 flex items-center justify-center min-h-[400px] lg:min-h-screen">
+              {/* Content for parallax will be inserted here in next tasks */}
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
       
       {/* Footer */}
-      <footer className="py-12 bg-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2 text-slate-900 font-black text-xl">
-             <div className="bg-slate-900 p-1.5 rounded-lg text-teal-400">
-              <Sparkles size={16} strokeWidth={2.5} />
-             </div>
-             PlexusMD Elite
+      <footer className="py-24 bg-slate-50 border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-start gap-12">
+          <div className="flex items-center gap-3 text-slate-900 font-black text-2xl tracking-tighter">
+            <div className="bg-slate-900 p-2 rounded-xl text-teal-400">
+              <Sparkles size={20} strokeWidth={2.5} />
+            </div>
+            PlexusMD <span className="text-teal-600 font-light">Elite</span>
           </div>
-          <div className="flex items-center gap-6">
-            <Link href="/politica-whatsapp" className="text-sm text-slate-500 hover:text-teal-600 font-bold transition-colors">
-              Política de WhatsApp Business
-            </Link>
+          
+          <div className="max-w-xl">
+            <p className="text-[11px] uppercase font-bold text-slate-400 tracking-[0.2em] mb-4">Certificación y Estándares</p>
+            <p className="text-sm text-slate-500 leading-relaxed italic">
+              PlexusMD opera bajo el cumplimiento estricto de las políticas de <strong className="text-slate-700">WhatsApp Business de Meta</strong> y la protección de datos personales bajo estándares internacionales de seguridad (GDPR/HIPAA compliant design). Todas las comunicaciones se basan en consentimiento explícito (Opt-in).
+            </p>
           </div>
-          <p className="text-slate-400 text-sm font-medium">
-            © {new Date().getFullYear()} PlexusMD. Todos los derechos reservados.
-          </p>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 mt-16 pt-8 border-t border-slate-200/60 flex justify-between items-center text-xs text-slate-400 font-medium">
+          <p>© {new Date().getFullYear()} PlexusMD. Todos los derechos reservados.</p>
+          <Link href="/politica-whatsapp" className="hover:text-teal-600 transition-colors font-bold">Política de Mensajería</Link>
         </div>
       </footer>
     </div>
