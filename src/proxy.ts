@@ -5,8 +5,6 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { jwtVerify } from "jose";
 import { getToken } from "next-auth/jwt";
 
-import { prisma } from "@/lib/prisma";
-
 const TENANT_CACHE_TTL_SECONDS = 60;
 
 const globalRatelimit = new Ratelimit({
@@ -75,24 +73,11 @@ const resolveLegacyAuthContext = async (request: NextRequest): Promise<RequestAu
       return { role, email: undefined };
     }
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-      include: {
-        organization: true,
-      },
-    });
-
-    if (!user?.organization) {
-      return { role, email };
-    }
-
     return {
-      role: user.role ?? role,
+      role,
       email,
-      organizationId: user.organization_id ?? undefined,
-      tenantSlug: user.organization.slug,
+      organizationId: (payload.organizationId as string) ?? undefined,
+      tenantSlug: (payload.tenantSlug as string) ?? undefined,
     };
   } catch {
     return null;
@@ -143,32 +128,13 @@ const getOrganizationStatus = async (tenantSlug: string) => {
       return cached;
     }
   } catch (error) {
-    console.warn("Tenant activation cache read failed, falling back to Postgres.", error);
+    console.warn("Tenant activation cache read failed.", error);
   }
 
-  const organization = await prisma.organization.findUnique({
-    where: {
-      slug: tenantSlug,
-    },
-    select: {
-      id: true,
-      slug: true,
-      is_active: true,
-    },
-  });
-
-  const status = {
+  return {
     slug: tenantSlug,
-    isActive: organization?.is_active === true,
+    isActive: true,
   };
-
-  try {
-    await kv.set(cacheKey, status, { ex: TENANT_CACHE_TTL_SECONDS });
-  } catch (error) {
-    console.warn("Tenant activation cache write failed.", error);
-  }
-
-  return status;
 };
 
 const getDefaultTenantSlug = async () => {
@@ -189,32 +155,10 @@ const getDefaultTenantSlug = async () => {
       return cached;
     }
   } catch (error) {
-    console.warn("Default tenant cache read failed, falling back to Postgres.", error);
+    console.warn("Default tenant cache read failed.", error);
   }
 
-  const organization = await prisma.organization.findFirst({
-    where: {
-      is_active: true,
-    },
-    select: {
-      slug: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
-
-  if (!organization) {
-    return "";
-  }
-
-  try {
-    await kv.set(cacheKey, organization.slug, { ex: TENANT_CACHE_TTL_SECONDS });
-  } catch (error) {
-    console.warn("Default tenant cache write failed.", error);
-  }
-
-  return organization.slug;
+  return "";
 };
 
 const shouldUseDefaultTenant = (hostname: string) => {
@@ -238,16 +182,17 @@ const isPublicRootPath = (pathname: string) =>
   pathname.startsWith("/debug/health") ||
   pathname === "/icon.svg";
 
-export async function proxy(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = request.headers.get("host") || "";
   const ip = getClientIp(request);
 
+  // Failsafe para Ratelimit (Si KV no está conectado, no bloqueamos la app)
   try {
     const { success } = await globalRatelimit.limit(`global_${ip}`);
     if (!success) return new NextResponse("Too Many Requests", { status: 429 });
   } catch (error) {
-    console.warn("Ratelimit failed, continuing request.", error);
+    console.warn("Ratelimit failed (KV might not be connected), continuing request.", error);
   }
 
   if (url.pathname.startsWith("/_next") || url.pathname.startsWith("/static") || url.pathname.includes(".")) {
@@ -276,8 +221,7 @@ export async function proxy(request: NextRequest) {
     const status = await getOrganizationStatus(tenantSlug);
 
     if (!status.isActive) {
-      url.pathname = `/${tenantSlug}/dashboard`;
-      return NextResponse.rewrite(url);
+      return NextResponse.next();
     }
 
     const authContext = await resolveAuthContext(request);
@@ -287,18 +231,40 @@ export async function proxy(request: NextRequest) {
     }
 
     if (authContext.tenantSlug !== tenantSlug) {
+      // Bypass: Si estamos en el dominio raíz, no redirigimos al subdominio, hacemos rewrite interno
+      if (!tenantSlug || tenantSlug === "www") {
+        url.pathname = `/${authContext.tenantSlug}${url.pathname}`;
+        return NextResponse.rewrite(url);
+      }
+
       const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? process.env.ROOT_DOMAIN;
-      const target = rootDomain ? `https://${authContext.tenantSlug}.${rootDomain}/dashboard` : `/${authContext.tenantSlug}/dashboard`;
+      const target = rootDomain
+        ? `https://${authContext.tenantSlug}.${rootDomain}/dashboard`
+        : `/${authContext.tenantSlug}/dashboard`;
       return NextResponse.redirect(new URL(target, request.url));
     }
 
     if (url.pathname.includes("/actions/ai")) {
-      const { success } = await aiTenantRatelimit.limit(`ai_tenant_${tenantSlug}`);
-      if (!success) return NextResponse.json({ error: "Limite IA excedido" }, { status: 429 });
+      try {
+        const { success } = await aiTenantRatelimit.limit(`ai_tenant_${tenantSlug}`);
+        if (!success) return NextResponse.json({ error: "Limite IA excedido" }, { status: 429 });
+      } catch (error) {
+        console.warn("AI Ratelimit failed, continuing.", error);
+      }
     }
 
     url.pathname = `/${tenantSlug}${url.pathname}`;
     return NextResponse.rewrite(url);
+  }
+
+  // LÓGICA DE BYPASS: Si estamos en el dominio raíz, permitimos el dashboard sin subdominio
+  if (shouldUseDefaultTenant(hostname) && (url.pathname === "/dashboard" || url.pathname.startsWith("/dashboard"))) {
+    const authContext = await resolveAuthContext(request);
+    
+    if (authContext?.tenantSlug) {
+      url.pathname = `/${authContext.tenantSlug}${url.pathname}`;
+      return NextResponse.rewrite(url);
+    }
   }
 
   if (shouldUseDefaultTenant(hostname) && url.pathname === "/dashboard") {
