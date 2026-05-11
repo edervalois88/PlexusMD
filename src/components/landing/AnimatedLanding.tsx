@@ -2,10 +2,19 @@
 
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, ShieldCheck, Sparkles, BrainCircuit, ChevronRight } from "lucide-react";
-import { useRef } from "react";
+import { ArrowRight, ShieldCheck, Sparkles, BrainCircuit, ChevronRight, Calendar, MessageSquare, CheckCircle2 } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
 
 export function AnimatedLanding() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -20,6 +29,25 @@ export function AnimatedLanding() {
 
   const yHero = useTransform(scrollYProgress, [0, 0.2], ["0%", "40%"]);
   const opacityHero = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+
+  // Agenda Cards Transforms
+  const card1Y = useTransform(agendaProgress, [0, 0.33, 0.4], ["0%", "0%", "-120%"]);
+  const card2Y = useTransform(agendaProgress, [0.3, 0.4, 0.66, 0.73], ["120%", "0%", "0%", "-120%"]);
+  const card3Y = useTransform(agendaProgress, [0.6, 0.73], ["120%", "0%"]);
+
+  // Micro-animations
+  const pulseScale = useTransform(agendaProgress, [0, 0.15, 0.3], [1, 1.2, 1]);
+  const waOpacity = useTransform(agendaProgress, [0.35, 0.45, 0.6], [0, 1, 1]);
+  const checkScale = useTransform(agendaProgress, [0.7, 0.85, 1], [0, 1, 1]);
+
+  // Text Synchronization
+  const textOpacity1 = useTransform(agendaProgress, [0, 0.25, 0.33], [1, 1, 0]);
+  const textOpacity2 = useTransform(agendaProgress, [0.3, 0.4, 0.6, 0.66], [0, 1, 1, 0]);
+  const textOpacity3 = useTransform(agendaProgress, [0.63, 0.73, 1], [0, 1, 1]);
+
+  const textY1 = useTransform(agendaProgress, [0, 0.25, 0.33], [0, 0, -20]);
+  const textY2 = useTransform(agendaProgress, [0.3, 0.4, 0.6, 0.66], [20, 0, 0, -20]);
+  const textY3 = useTransform(agendaProgress, [0.63, 0.73, 1], [20, 0, 0]);
 
   // Liquid Animations Definitions
   const liquidStagger = {
@@ -240,50 +268,128 @@ export function AnimatedLanding() {
       </section>
 
       {/* Agenda Autónoma Module - Timeline Scrollytelling */}
-      <section ref={agendaRef} className="relative h-[300vh] bg-white">
-        <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-20 items-center w-full">
-            {/* Visual Columna (Timeline) - Left */}
-            <div className="relative order-2 lg:order-1 flex justify-center h-[500px] w-full items-center">
-              <div className="space-y-16 relative">
-                <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-slate-100" />
+      <section ref={agendaRef} className="relative h-auto lg:h-[300vh] bg-white">
+        <div className="lg:sticky lg:top-0 lg:h-screen w-full flex items-center overflow-hidden h-auto py-20 lg:py-0">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col lg:grid lg:grid-cols-2 gap-20 items-center w-full">
+            {/* Visual Columna (Push Cards) - Left */}
+            <div className="relative order-2 lg:order-1 flex justify-center h-auto lg:h-[600px] w-full items-center">
+              <div className="relative w-full max-w-sm h-auto lg:h-[400px] flex flex-col gap-8 lg:block">
                 
-                {[
-                  { step: "1", title: "Cita Agendada", desc: "Paciente reserva desde su móvil." },
-                  { step: "2", title: "Recordatorio WhatsApp", desc: "Enviado automáticamente 24h antes." },
-                  { step: "3", title: "Confirmación Recibida", desc: "Estado actualizado en el dashboard." }
-                ].map((item, i) => (
+                {/* Card 1: Calendario */}
+                <motion.div 
+                  style={{ y: isMobile ? 0 : card1Y }}
+                  className="relative lg:absolute lg:inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col justify-between"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600">
+                      <Calendar size={28} />
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Disponibilidad</div>
+                      <div className="text-sm font-bold text-slate-900">Octubre 2024</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-7 gap-2 my-6 lg:my-0">
+                    {Array.from({ length: 28 }).map((_, i) => (
+                      <motion.div 
+                        key={i} 
+                        style={i === 14 ? { scale: pulseScale } : {}}
+                        className={`h-8 rounded-lg flex items-center justify-center text-[10px] font-bold ${i === 14 ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/30' : 'bg-slate-50 text-slate-400'}`}
+                      >
+                        {i + 1}
+                      </motion.div>
+                    ))}
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <div className="h-2 w-24 bg-slate-200 rounded-full mb-2" />
+                    <div className="h-2 w-32 bg-slate-100 rounded-full" />
+                  </div>
+                </motion.div>
+
+                {/* Card 2: WhatsApp */}
+                <motion.div 
+                  style={{ y: isMobile ? 0 : card2Y }}
+                  className="relative lg:absolute lg:inset-0 bg-gradient-to-br from-teal-500 to-teal-700 rounded-3xl shadow-2xl p-8 flex flex-col items-center justify-center text-center text-white"
+                >
+                  <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center mb-6 shadow-inner">
+                    <MessageSquare size={40} className="text-white" />
+                  </div>
+                  <h4 className="text-2xl font-black mb-2 leading-tight">Recordatorio <br/> Automático</h4>
+                  <p className="text-teal-50 text-sm opacity-80">Enviado vía WhatsApp API</p>
+                  
                   <motion.div 
-                    key={i} 
-                    className="flex gap-10 items-start group"
-                    initial={{ opacity: 0.2, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ amount: 0.3 }}
-                    transition={{ duration: 0.5 }}
+                    style={{ opacity: isMobile ? 1 : waOpacity }}
+                    className="mt-8 w-full bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-left"
                   >
-                    <div className="w-14 h-14 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-2xl z-10 font-black text-xl">
-                      {item.step}
+                    <div className="flex gap-2 items-center mb-2">
+                      <div className="w-2 h-2 rounded-full bg-teal-300 animate-pulse" />
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-teal-200">Mensaje Saliente</div>
                     </div>
-                    <div>
-                      <h4 className="text-2xl font-bold text-slate-950">{item.title}</h4>
-                      <p className="text-slate-500 text-lg mt-1">{item.desc}</p>
-                    </div>
+                    <div className="h-1.5 w-full bg-white/20 rounded-full mb-1.5" />
+                    <div className="h-1.5 w-3/4 bg-white/20 rounded-full" />
                   </motion.div>
-                ))}
+                </motion.div>
+
+                {/* Card 3: Success */}
+                <motion.div 
+                  style={{ y: isMobile ? 0 : card3Y }}
+                  className="relative lg:absolute lg:inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col items-center justify-center text-center p-8"
+                >
+                  <motion.div 
+                    style={{ scale: isMobile ? 1 : checkScale }}
+                    className="w-32 h-32 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 mb-8"
+                  >
+                    <CheckCircle2 size={64} strokeWidth={2.5} />
+                  </motion.div>
+                  <h4 className="text-3xl font-black text-slate-900 mb-3 tracking-tighter">¡Cita Confirmada!</h4>
+                  <p className="text-slate-500 font-medium">Dashboard actualizado en tiempo real.</p>
+                  
+                  <div className="mt-8 flex gap-2">
+                    <div className="w-2 h-2 rounded-full bg-teal-500" />
+                    <div className="w-2 h-2 rounded-full bg-slate-200" />
+                    <div className="w-2 h-2 rounded-full bg-slate-200" />
+                  </div>
+                </motion.div>
+
               </div>
             </div>
 
             {/* Texto Columna Sticky - Right */}
-            <div className="lg:order-2">
-              <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ margin: "-100px" }}>
-                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Operación 24/7</span>
-                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Agenda Autónoma</h2>
-                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Sin recepcionistas, sin errores. PlexusMD gestiona la disponibilidad y confirma cada cita automáticamente.</p>
+            <div className="lg:order-2 relative h-auto lg:h-[400px] flex flex-col gap-20 lg:block">
+              {/* Bloque 1: Disponibilidad */}
+              <motion.div 
+                style={{ opacity: isMobile ? 1 : textOpacity1, y: isMobile ? 0 : textY1 }}
+                className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
+              >
+                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 1: Disponibilidad</span>
+                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Agenda Abierta</h2>
+                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Los pacientes eligen el mejor horario según tu configuración en tiempo real, sin intermediarios.</p>
+              </motion.div>
+
+              {/* Bloque 2: WhatsApp */}
+              <motion.div 
+                style={{ opacity: isMobile ? 1 : textOpacity2, y: isMobile ? 0 : textY2 }}
+                className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
+              >
+                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 2: Recordatorios</span>
+                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Confirmación WA</h2>
+                <p className="mt-8 text-slate-500 text-xl leading-relaxed">PlexusMD envía recordatorios automáticos vía WhatsApp Business, reduciendo el ausentismo drásticamente.</p>
+              </motion.div>
+
+              {/* Bloque 3: Sincronización */}
+              <motion.div 
+                style={{ opacity: isMobile ? 1 : textOpacity3, y: isMobile ? 0 : textY3 }}
+                className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
+              >
+                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 3: Sincronización</span>
+                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Éxito Total</h2>
+                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Tu dashboard se actualiza al instante. Todo listo para recibir al paciente sin fricciones.</p>
               </motion.div>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* Explicit Compliance Section - Enhanced with Sticky/Parallax Support */}
       <section className="relative bg-white py-20 lg:py-0 overflow-visible border-t border-slate-100">
