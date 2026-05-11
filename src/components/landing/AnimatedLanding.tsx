@@ -12,6 +12,12 @@ export function AnimatedLanding() {
     offset: ["start start", "end end"]
   });
 
+  const agendaRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: agendaProgress } = useScroll({
+    target: agendaRef,
+    offset: ["start start", "end end"]
+  });
+
   const yHero = useTransform(scrollYProgress, [0, 0.2], ["0%", "40%"]);
   const opacityHero = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
@@ -233,46 +239,48 @@ export function AnimatedLanding() {
         </div>
       </section>
 
-      {/* Agenda Autónoma Module - Timeline */}
-      <section className="relative py-40 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-20 items-start">
-          {/* Visual Columna (Timeline) */}
-          <div className="relative order-2 lg:order-1 flex justify-center">
-            <div className="space-y-16 relative">
-              <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-slate-100" />
-              
-              {[
-                { step: "1", title: "Cita Agendada", desc: "Paciente reserva desde su móvil." },
-                { step: "2", title: "Recordatorio WhatsApp", desc: "Enviado automáticamente 24h antes." },
-                { step: "3", title: "Confirmación Recibida", desc: "Estado actualizado en el dashboard." }
-              ].map((item, i) => (
-                <motion.div 
-                  key={i} 
-                  className="flex gap-10 items-start group"
-                  initial={{ opacity: 0.2, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ amount: 0.3 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-2xl z-10 font-black text-xl">
-                    {item.step}
-                  </div>
-                  <div>
-                    <h4 className="text-2xl font-bold text-slate-950">{item.title}</h4>
-                    <p className="text-slate-500 text-lg mt-1">{item.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
+      {/* Agenda Autónoma Module - Timeline Scrollytelling */}
+      <section ref={agendaRef} className="relative h-[300vh] bg-white">
+        <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-20 items-center w-full">
+            {/* Visual Columna (Timeline) - Left */}
+            <div className="relative order-2 lg:order-1 flex justify-center h-[500px] w-full items-center">
+              <div className="space-y-16 relative">
+                <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-slate-100" />
+                
+                {[
+                  { step: "1", title: "Cita Agendada", desc: "Paciente reserva desde su móvil." },
+                  { step: "2", title: "Recordatorio WhatsApp", desc: "Enviado automáticamente 24h antes." },
+                  { step: "3", title: "Confirmación Recibida", desc: "Estado actualizado en el dashboard." }
+                ].map((item, i) => (
+                  <motion.div 
+                    key={i} 
+                    className="flex gap-10 items-start group"
+                    initial={{ opacity: 0.2, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ amount: 0.3 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-2xl z-10 font-black text-xl">
+                      {item.step}
+                    </div>
+                    <div>
+                      <h4 className="text-2xl font-bold text-slate-950">{item.title}</h4>
+                      <p className="text-slate-500 text-lg mt-1">{item.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Texto Columna Sticky */}
-          <div className="lg:sticky lg:top-32 h-fit lg:order-2">
-            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ margin: "-100px" }}>
-              <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Operación 24/7</span>
-              <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Agenda Autónoma</h2>
-              <p className="mt-8 text-slate-500 text-xl leading-relaxed">Sin recepcionistas, sin errores. PlexusMD gestiona la disponibilidad y confirma cada cita automáticamente.</p>
-            </motion.div>
+            {/* Texto Columna Sticky - Right */}
+            <div className="lg:order-2">
+              <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ margin: "-100px" }}>
+                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Operación 24/7</span>
+                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Agenda Autónoma</h2>
+                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Sin recepcionistas, sin errores. PlexusMD gestiona la disponibilidad y confirma cada cita automáticamente.</p>
+              </motion.div>
+            </div>
           </div>
         </div>
       </section>
