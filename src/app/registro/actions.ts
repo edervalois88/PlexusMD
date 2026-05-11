@@ -14,6 +14,10 @@ const registerTenantSchema = z.object({
   doctorName: z.string().trim().min(2, "Ingresa el nombre del medico."),
   email: z.string().trim().email("Ingresa un email valido.").toLowerCase(),
   clinicName: z.string().trim().min(2, "Ingresa el nombre de la clinica."),
+  phone: z.string().trim().min(10, "Ingresa un numero de telefono valido."),
+  whatsappOptIn: z.literal("on", {
+    message: "Debes aceptar recibir mensajes de WhatsApp."
+  }),
   slug: z
     .string()
     .trim()
@@ -36,6 +40,8 @@ export async function registerTenant(
     doctorName: formData.get("doctorName"),
     email: formData.get("email"),
     clinicName: formData.get("clinicName"),
+    phone: formData.get("phone"),
+    whatsappOptIn: formData.get("whatsappOptIn"),
     slug: formData.get("slug"),
   });
 
@@ -45,7 +51,7 @@ export async function registerTenant(
     };
   }
 
-  const { doctorName, email, clinicName, slug } = parsed.data;
+  const { doctorName, email, clinicName, phone, whatsappOptIn, slug } = parsed.data;
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -58,6 +64,11 @@ export async function registerTenant(
             onboarding: {
               doctorName,
               source: "registro-publico",
+            },
+            whatsapp: {
+              phone,
+              optIn: whatsappOptIn === "on",
+              optInDate: new Date().toISOString(),
             },
           },
         },

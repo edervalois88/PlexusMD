@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
-import { Building2, Loader2, Mail, Stethoscope } from "lucide-react";
+import { Building2, Loader2, Mail, Stethoscope, Phone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +54,21 @@ export function RegistrationForm() {
 
           <label className="block space-y-2">
             <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <Phone size={16} />
+              WhatsApp de contacto
+            </span>
+            <input
+              name="phone"
+              type="tel"
+              required
+              minLength={10}
+              placeholder="+52 55 1234 5678"
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-teal-400 focus:ring-4 focus:ring-teal-100"
+            />
+          </label>
+
+          <label className="block space-y-2">
+            <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
               <Building2 size={16} />
               Nombre de la clinica
             </span>
@@ -80,6 +96,22 @@ export function RegistrationForm() {
                 .plexusmd.xyz
               </span>
             </div>
+          </label>
+
+          <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <input
+              type="checkbox"
+              name="whatsappOptIn"
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600 flex-shrink-0"
+              required
+            />
+            <span className="text-sm leading-snug text-slate-600">
+              Acepto recibir notificaciones importantes, recordatorios de citas y actualizaciones de la plataforma de PlexusMD via WhatsApp. Comprendo y acepto la{" "}
+              <Link href="/politica-whatsapp" target="_blank" rel="noopener noreferrer" className="text-teal-700 font-semibold hover:underline">
+                Política de Mensajería
+              </Link>
+              . Entiendo que puedo darme de baja en cualquier momento respondiendo "BAJA".
+            </span>
           </label>
 
           {state.error ? (

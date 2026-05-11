@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, Calendar, Users, Settings } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Settings, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
 
 export function Sidebar({ tenant }: { tenant: string }) {
   const [isHealthy, setIsHealthy] = useState(true);
@@ -55,7 +56,7 @@ export function Sidebar({ tenant }: { tenant: string }) {
           <span>Pacientes</span>
         </Link>
       </nav>
-      <div className="mt-auto">
+      <div className="mt-auto space-y-2">
         <Link
           href={`/${tenant}/configuracion/auditoria`}
           className="flex items-center gap-3 px-4 py-2 text-[#1E293B] hover:bg-white/40 rounded-xl transition-colors"
@@ -63,6 +64,13 @@ export function Sidebar({ tenant }: { tenant: string }) {
           <Settings size={20} className="text-[#14B8A6]" />
           <span>Configuración</span>
         </Link>
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="w-full flex items-center gap-3 px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+        >
+          <LogOut size={20} />
+          <span>Cerrar Sesión</span>
+        </button>
       </div>
     </aside>
   );
