@@ -35,19 +35,34 @@ export function AnimatedLanding() {
   const card2Y = useTransform(agendaProgress, [0.3, 0.4, 0.66, 0.73], ["120%", "0%", "0%", "-120%"]);
   const card3Y = useTransform(agendaProgress, [0.6, 0.73], ["120%", "0%"]);
 
+  const agendaBg = useTransform(
+    agendaProgress,
+    [0, 0.2, 0.4, 0.6, 0.8, 1.0],
+    ["#ffffff", "#f8fafc", "#f0fdfa", "#eff6ff", "#0f172a", "#0f172a"]
+  );
+
   // Micro-animations
   const pulseScale = useTransform(agendaProgress, [0, 0.15, 0.3], [1, 1.2, 1]);
   const waOpacity = useTransform(agendaProgress, [0.35, 0.45, 0.6], [0, 1, 1]);
   const checkScale = useTransform(agendaProgress, [0.7, 0.85, 1], [0, 1, 1]);
 
-  // Text Synchronization
-  const textOpacity1 = useTransform(agendaProgress, [0, 0.25, 0.33], [1, 1, 0]);
-  const textOpacity2 = useTransform(agendaProgress, [0.3, 0.4, 0.6, 0.66], [0, 1, 1, 0]);
-  const textOpacity3 = useTransform(agendaProgress, [0.63, 0.73, 1], [0, 1, 1]);
+  // Text Synchronization - 5 Stages
+  // Stage 1: 0% - 15%
+  const textOpacity1 = useTransform(agendaProgress, [0, 0.15, 0.18], [1, 1, 0]);
+  // Stage 2: 20% - 35%
+  const textOpacity2 = useTransform(agendaProgress, [0.17, 0.2, 0.35, 0.38], [0, 1, 1, 0]);
+  // Stage 3: 40% - 55%
+  const textOpacity3 = useTransform(agendaProgress, [0.37, 0.4, 0.55, 0.58], [0, 1, 1, 0]);
+  // Stage 4: 60% - 75%
+  const textOpacity4 = useTransform(agendaProgress, [0.57, 0.6, 0.75, 0.78], [0, 1, 1, 0]);
+  // Stage 5: 80% - 100%
+  const textOpacity5 = useTransform(agendaProgress, [0.77, 0.8, 1], [0, 1, 1]);
 
-  const textY1 = useTransform(agendaProgress, [0, 0.25, 0.33], [0, 0, -20]);
-  const textY2 = useTransform(agendaProgress, [0.3, 0.4, 0.6, 0.66], [20, 0, 0, -20]);
-  const textY3 = useTransform(agendaProgress, [0.63, 0.73, 1], [20, 0, 0]);
+  const textY1 = useTransform(agendaProgress, [0, 0.15, 0.18], [0, 0, -20]);
+  const textY2 = useTransform(agendaProgress, [0.17, 0.2, 0.35, 0.38], [20, 0, 0, -20]);
+  const textY3 = useTransform(agendaProgress, [0.37, 0.4, 0.55, 0.58], [20, 0, 0, -20]);
+  const textY4 = useTransform(agendaProgress, [0.57, 0.6, 0.75, 0.78], [20, 0, 0, -20]);
+  const textY5 = useTransform(agendaProgress, [0.77, 0.8, 1], [20, 0, 0]);
 
   // Liquid Animations Definitions
   const liquidStagger = {
@@ -268,8 +283,11 @@ export function AnimatedLanding() {
       </section>
 
       {/* Agenda Autónoma Module - Timeline Scrollytelling */}
-      <section ref={agendaRef} className="relative h-auto lg:h-[300vh] bg-white">
-        <div className="lg:sticky lg:top-0 lg:h-screen w-full flex items-center overflow-hidden h-auto py-20 lg:py-0">
+      <section ref={agendaRef} className="relative h-auto lg:h-[500vh] bg-white transition-colors duration-500">
+        <motion.div 
+          style={{ backgroundColor: isMobile ? "#ffffff" : agendaBg }}
+          className="lg:sticky lg:top-0 lg:h-screen w-full flex items-center overflow-hidden h-auto py-20 lg:py-0"
+        >
           <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col lg:grid lg:grid-cols-2 gap-20 items-center w-full">
             {/* Visual Columna (Push Cards) - Left */}
             <div className="relative order-2 lg:order-1 flex justify-center h-auto lg:h-[600px] w-full items-center">
@@ -385,9 +403,29 @@ export function AnimatedLanding() {
                 <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Éxito Total</h2>
                 <p className="mt-8 text-slate-500 text-xl leading-relaxed">Tu dashboard se actualiza al instante. Todo listo para recibir al paciente sin fricciones.</p>
               </motion.div>
+
+              {/* Bloque 4: Análisis AI */}
+              <motion.div 
+                style={{ opacity: isMobile ? 1 : textOpacity4, y: isMobile ? 0 : textY4 }}
+                className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
+              >
+                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 4: Análisis AI</span>
+                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Side Doctor AI</h2>
+                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Side Doctor analiza el historial y sugiere acciones clínicas proactivas antes de la consulta.</p>
+              </motion.div>
+
+              {/* Bloque 5: Fidelización */}
+              <motion.div 
+                style={{ opacity: isMobile ? 1 : textOpacity5, y: isMobile ? 0 : textY5 }}
+                className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
+              >
+                <span className="text-teal-400 font-bold tracking-widest uppercase text-sm">Paso 5: Fidelización</span>
+                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-white">Cuidado Continuo</h2>
+                <p className="mt-8 text-slate-400 text-xl leading-relaxed">Seguimiento automatizado post-consulta para asegurar la adherencia al tratamiento.</p>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
 
