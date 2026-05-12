@@ -512,43 +512,9 @@ export function AnimatedLanding() {
           className="h-auto py-20 lg:sticky lg:top-0 lg:h-screen w-full flex items-center lg:py-0 lg:overflow-hidden"
         >
           <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col lg:grid lg:grid-cols-2 gap-20 items-center w-full">
-            
-            {/* Visual Columna (Push Cards) - Left (Hidden on Mobile) */}
-            <div className="relative order-2 lg:order-1 hidden lg:flex justify-center h-[600px] w-full items-center">
-              <div className="relative w-full max-w-sm h-[400px]">
-                
-                <WhatsAppCard 
-                  style={{ y: card1Y, zIndex: 10 }}
-                  bubble1Scale={bubble1Scale}
-                  bubble2Scale={bubble2Scale}
-                  bubble3Scale={bubble3Scale}
-                />
 
-                <PaymentCard 
-                  style={{ y: card2Y, zIndex: 20 }}
-                  shieldPulse={shieldPulse}
-                  btnBg={btnBg}
-                  btnText={btnText}
-                  btnArrowOpacity={btnArrowOpacity}
-                  paymentDone={paymentDone}
-                />
-
-                <CalendarCard style={{ y: card3Y, zIndex: 30 }} />
-
-                <ConfirmationCard 
-                  style={{ y: card4Y, zIndex: 40 }}
-                  checkColor={checkColor}
-                />
-
-                <SideDoctorCard 
-                  style={{ y: card5Y, zIndex: 50 }}
-                  scanlineOpacity={scanlineOpacity}
-                />
-              </div>
-            </div>
-
-            {/* Texto Columna Sticky - Right */}
-            <div className="order-1 lg:order-2 relative h-auto lg:h-[500px] lg:overflow-hidden w-full">
+            {/* Texto Columna Sticky - Left */}
+            <div className="order-1 lg:order-1 relative h-auto lg:h-[500px] lg:overflow-hidden w-full">
               <motion.div 
                 style={{ y: isMobile ? 0 : textStripY }}
                 className="flex flex-col gap-32 lg:gap-0"
@@ -657,6 +623,40 @@ export function AnimatedLanding() {
                   </div>
                 </div>
               </motion.div>
+            </div>
+
+            {/* Visual Columna (Push Cards) - Right (Hidden on Mobile) */}
+            <div className="relative order-2 lg:order-2 hidden lg:flex justify-center h-[600px] w-full items-center">
+              <div className="relative w-full max-w-sm h-[400px]">
+
+                <WhatsAppCard
+                  style={{ y: card1Y, zIndex: 10 }}
+                  bubble1Scale={bubble1Scale}
+                  bubble2Scale={bubble2Scale}
+                  bubble3Scale={bubble3Scale}
+                />
+
+                <PaymentCard
+                  style={{ y: card2Y, zIndex: 20 }}
+                  shieldPulse={shieldPulse}
+                  btnBg={btnBg}
+                  btnText={btnText}
+                  btnArrowOpacity={btnArrowOpacity}
+                  paymentDone={paymentDone}
+                />
+
+                <CalendarCard style={{ y: card3Y, zIndex: 30 }} />
+
+                <ConfirmationCard
+                  style={{ y: card4Y, zIndex: 40 }}
+                  checkColor={checkColor}
+                />
+
+                <SideDoctorCard
+                  style={{ y: card5Y, zIndex: 50 }}
+                  scanlineOpacity={scanlineOpacity}
+                />
+              </div>
             </div>
           </div>
         </motion.div>
