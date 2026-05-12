@@ -1,9 +1,244 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, ShieldCheck, Sparkles, BrainCircuit, ChevronRight, Calendar, MessageSquare, CheckCircle2, CheckCheck, Check, Activity } from "lucide-react";
+import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
+import { ArrowRight, ShieldCheck, Sparkles, BrainCircuit, ChevronRight, Calendar, MessageSquare, CheckCircle2, CheckCheck, Activity } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
+
+// --- Components for Agenda Cards ---
+
+interface CardProps {
+  style?: any;
+  isMobile?: boolean;
+}
+
+function WhatsAppCard({ style, isMobile, bubble1Scale, bubble2Scale, bubble3Scale }: CardProps & { bubble1Scale: any, bubble2Scale: any, bubble3Scale: any }) {
+  return (
+    <motion.div 
+      style={style}
+      className={`${isMobile ? "relative h-[350px]" : "absolute inset-0"} bg-[#E5DDD5] rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col`}
+    >
+      {/* WA Header */}
+      <div className="bg-[#075E54] p-4 flex items-center gap-3">
+        <div className="w-10 h-10 bg-slate-200 rounded-full flex-shrink-0 overflow-hidden">
+          <div className="w-full h-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold text-xs">P</div>
+        </div>
+        <div>
+          <div className="text-white font-bold text-sm">PlexusMD Assistant</div>
+          <div className="text-teal-100 text-[10px] flex items-center gap-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" /> en línea
+          </div>
+        </div>
+      </div>
+
+      {/* Chat Area */}
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+        <motion.div 
+          style={{ scale: bubble1Scale, originX: 0, originY: 0 }}
+          className="max-w-[80%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-800"
+        >
+          ¡Hola! Soy tu asistente. ¿Deseas agendar una cita?
+        </motion.div>
+        
+        <motion.div 
+          style={{ scale: bubble2Scale, originX: 1, originY: 0 }}
+          className="max-w-[80%] bg-[#DCF8C6] p-3 rounded-2xl rounded-tr-none shadow-sm text-sm text-slate-800 ml-auto"
+        >
+          Sí, por favor. Para mañana a las 10am.
+        </motion.div>
+
+        <motion.div 
+          style={{ scale: bubble3Scale, originX: 0, originY: 0 }}
+          className="max-w-[80%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-800"
+        >
+          Perfecto. Recibirás un link de pago seguro en un momento.
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
+function PaymentCard({ style, isMobile, shieldPulse, btnBg, btnText, btnArrowOpacity, paymentDone }: CardProps & { shieldPulse: any, btnBg: any, btnText: any, btnArrowOpacity: any, paymentDone: any }) {
+  return (
+    <motion.div 
+      style={style}
+      className={`${isMobile ? "relative" : "absolute inset-0"} bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col justify-center`}
+    >
+      <div className="mb-8">
+        <div className="flex items-center gap-2 text-slate-400 mb-2">
+          <motion.div style={{ scale: shieldPulse }}>
+            <ShieldCheck size={16} className="text-teal-600" />
+          </motion.div>
+          <span className="text-xs font-bold uppercase tracking-wider">Checkout Seguro</span>
+        </div>
+        <div className="text-2xl font-black text-slate-900">Consulta Especialista</div>
+        <div className="text-3xl font-black text-teal-600 mt-1">$450.00 <span className="text-sm text-slate-400">MXN</span></div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="p-4 border-2 border-slate-100 rounded-2xl flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-6 bg-blue-600 rounded flex items-center justify-center text-[8px] text-white font-bold">VISA</div>
+            <div className="text-sm font-bold text-slate-600">•••• 4242</div>
+          </div>
+          <CheckCircle2 size={18} className="text-teal-600" />
+        </div>
+        
+        <motion.button 
+          style={{ backgroundColor: btnBg }}
+          className="w-full text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 relative overflow-hidden"
+        >
+          <motion.span className="flex items-center gap-2">
+            <motion.span>{btnText}</motion.span>
+            
+            <div className="relative w-5 h-5">
+              <motion.div 
+                style={{ opacity: btnArrowOpacity }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <ArrowRight size={18} />
+              </motion.div>
+              <motion.div 
+                style={{ opacity: paymentDone, scale: paymentDone }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <CheckCheck size={18} />
+              </motion.div>
+            </div>
+          </motion.span>
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+}
+
+function CalendarCard({ style, isMobile }: CardProps) {
+  return (
+    <motion.div 
+      style={style}
+      className={`${isMobile ? "relative" : "absolute inset-0"} bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col`}
+    >
+      <div className="flex justify-between items-center mb-6">
+        <div className="font-black text-slate-900">Agenda Médica</div>
+        <div className="flex gap-1">
+          <div className="w-2 h-2 rounded-full bg-teal-500" />
+          <div className="w-2 h-2 rounded-full bg-blue-500" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1.5 mb-8">
+        {Array.from({ length: 35 }).map((_, i) => (
+          <div 
+            key={i} 
+            className="aspect-square rounded-md relative flex items-center justify-center bg-slate-50"
+          >
+            {i === 17 && (
+              <div className="absolute inset-0 bg-teal-500 rounded-md shadow-lg shadow-teal-500/30 flex items-center justify-center">
+                <CheckCircle2 size={12} className="text-white" />
+              </div>
+            )}
+            <span className="text-[8px] font-bold text-slate-300">{i + 1}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-auto space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-600">
+            <Calendar size={14} />
+          </div>
+          <div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sincronización</div>
+            <div className="text-xs font-bold text-slate-700">Google Calendar Link</div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function ConfirmationCard({ style, isMobile, checkColor }: CardProps & { checkColor: any }) {
+  return (
+    <motion.div 
+      style={style}
+      className={`${isMobile ? "relative" : "absolute inset-0"} bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col items-center justify-center text-center`}
+    >
+      <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mb-6">
+        <MessageSquare size={40} className="text-teal-600" />
+      </div>
+      <h3 className="text-2xl font-black text-slate-900 mb-2">¡Cita Confirmada!</h3>
+      <p className="text-slate-500 mb-8">Hemos enviado los detalles a tu WhatsApp.</p>
+      
+      <div className="bg-teal-500 text-white px-6 py-4 rounded-2xl flex items-center gap-4 shadow-lg shadow-teal-500/20">
+        <div className="font-bold text-sm">Notificación Enviada</div>
+        <motion.div style={{ color: checkColor }}>
+          <CheckCheck size={20} />
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
+function SideDoctorCard({ style, isMobile, scanlineOpacity }: CardProps & { scanlineOpacity: any }) {
+  return (
+    <motion.div 
+      style={style}
+      className={`${isMobile ? "relative" : "absolute inset-0"} bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 p-8 flex flex-col overflow-hidden`}
+    >
+      {/* Scanline */}
+      <motion.div 
+        style={{ opacity: scanlineOpacity }}
+        animate={{ top: ["10%", "90%", "10%"] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        className="absolute left-0 right-0 h-px bg-teal-400 shadow-[0_0_15px_rgba(20,184,166,1)] z-10"
+      />
+
+      <div className="flex items-center gap-3 mb-8">
+        <div className="bg-teal-500/20 p-2 rounded-xl text-teal-400">
+          <BrainCircuit size={24} />
+        </div>
+        <div className="font-bold text-white">Side Doctor AI</div>
+      </div>
+
+      <div className="space-y-6 relative z-0">
+        <div className="flex gap-4">
+          <div className="w-2 h-2 rounded-full bg-teal-500 mt-1.5" />
+          <div className="flex-1">
+            <div className="h-2 w-24 bg-slate-700 rounded-full mb-2" />
+            <div className="h-2 w-full bg-slate-800 rounded-full" />
+          </div>
+        </div>
+        
+        <div className="mt-12 p-4 bg-teal-500/10 border border-teal-500/20 rounded-2xl">
+          <div className="flex items-center gap-2 mb-2 text-teal-400">
+            <Activity size={14} />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Analizando Historial...</span>
+          </div>
+          <div className="text-sm text-slate-300 italic">
+            &quot;Detectado patrón de adherencia positiva. Sugerir mantenimiento de dosis.&quot;
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+const liquidReveal = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+  }
+};
+
+const liquidStagger = {
+  visible: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
 export function AnimatedLanding() {
   const [isMobile, setIsMobile] = useState(false);
@@ -274,7 +509,7 @@ export function AnimatedLanding() {
       <section ref={agendaRef} className="relative h-auto lg:h-[500vh] bg-white transition-colors duration-500">
         <motion.div 
           style={{ backgroundColor: isMobile ? "#ffffff" : agendaBg }}
-          className={`lg:sticky lg:top-0 lg:h-screen w-full flex items-center ${!isMobile && "overflow-hidden"} h-auto py-20 lg:py-0`}
+          className="h-auto py-20 lg:sticky lg:top-0 lg:h-screen w-full flex items-center lg:py-0 lg:overflow-hidden"
         >
           <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col lg:grid lg:grid-cols-2 gap-20 items-center w-full">
             
@@ -282,209 +517,38 @@ export function AnimatedLanding() {
             <div className="relative order-2 lg:order-1 hidden lg:flex justify-center h-[600px] w-full items-center">
               <div className="relative w-full max-w-sm h-[400px]">
                 
-                {/* Card 1: WhatsApp Chatbot */}
-                <motion.div 
-                  style={{ y: card1Y }}
-                  className="absolute inset-0 bg-[#E5DDD5] rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col"
-                >
-                  {/* WA Header */}
-                  <div className="bg-[#075E54] p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-200 rounded-full flex-shrink-0 overflow-hidden">
-                      <div className="w-full h-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold text-xs">P</div>
-                    </div>
-                    <div>
-                      <div className="text-white font-bold text-sm">PlexusMD Assistant</div>
-                      <div className="text-teal-100 text-[10px] flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" /> en línea
-                      </div>
-                    </div>
-                  </div>
+                <WhatsAppCard 
+                  style={{ y: card1Y, zIndex: 10 }}
+                  bubble1Scale={bubble1Scale}
+                  bubble2Scale={bubble2Scale}
+                  bubble3Scale={bubble3Scale}
+                />
 
-                  {/* Chat Area */}
-                  <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-                    {/* Incoming message */}
-                    <motion.div 
-                      style={{ scale: bubble1Scale, originX: 0, originY: 0 }}
-                      className="max-w-[80%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-800"
-                    >
-                      ¡Hola! Soy tu asistente. ¿Deseas agendar una cita?
-                    </motion.div>
-                    
-                    {/* Outgoing message */}
-                    <motion.div 
-                      style={{ scale: bubble2Scale, originX: 1, originY: 0 }}
-                      className="max-w-[80%] bg-[#DCF8C6] p-3 rounded-2xl rounded-tr-none shadow-sm text-sm text-slate-800 ml-auto"
-                    >
-                      Sí, por favor. Para mañana a las 10am.
-                    </motion.div>
+                <PaymentCard 
+                  style={{ y: card2Y, zIndex: 20 }}
+                  shieldPulse={shieldPulse}
+                  btnBg={btnBg}
+                  btnText={btnText}
+                  btnArrowOpacity={btnArrowOpacity}
+                  paymentDone={paymentDone}
+                />
 
-                    {/* Incoming confirmation */}
-                    <motion.div 
-                      style={{ scale: bubble3Scale, originX: 0, originY: 0 }}
-                      className="max-w-[80%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-800"
-                    >
-                      Perfecto. Recibirás un link de pago seguro en un momento.
-                    </motion.div>
-                  </div>
-                </motion.div>
+                <CalendarCard style={{ y: card3Y, zIndex: 30 }} />
 
-                {/* Card 2: Pago Seguro */}
-                <motion.div 
-                  style={{ y: card2Y }}
-                  className="absolute inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col justify-center"
-                >
-                  <div className="mb-8">
-                    <div className="flex items-center gap-2 text-slate-400 mb-2">
-                      <motion.div style={{ scale: shieldPulse }}>
-                        <ShieldCheck size={16} className="text-teal-600" />
-                      </motion.div>
-                      <span className="text-xs font-bold uppercase tracking-wider">Checkout Seguro</span>
-                    </div>
-                    <div className="text-2xl font-black text-slate-900">Consulta Especialista</div>
-                    <div className="text-3xl font-black text-teal-600 mt-1">$450.00 <span className="text-sm text-slate-400">MXN</span></div>
-                  </div>
+                <ConfirmationCard 
+                  style={{ y: card4Y, zIndex: 40 }}
+                  checkColor={checkColor}
+                />
 
-                  <div className="space-y-4">
-                    <div className="p-4 border-2 border-slate-100 rounded-2xl flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-6 bg-blue-600 rounded flex items-center justify-center text-[8px] text-white font-bold">VISA</div>
-                        <div className="text-sm font-bold text-slate-600">•••• 4242</div>
-                      </div>
-                      <CheckCircle2 size={18} className="text-teal-600" />
-                    </div>
-                    
-                    <motion.button 
-                      style={{ backgroundColor: btnBg }}
-                      className="w-full text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 relative overflow-hidden"
-                    >
-                      <motion.span className="flex items-center gap-2">
-                        <motion.span>{btnText}</motion.span>
-                        
-                        <div className="relative w-5 h-5">
-                          <motion.div 
-                            style={{ opacity: btnArrowOpacity }}
-                            className="absolute inset-0 flex items-center justify-center"
-                          >
-                            <ArrowRight size={18} />
-                          </motion.div>
-                          <motion.div 
-                            style={{ opacity: paymentDone, scale: paymentDone }}
-                            className="absolute inset-0 flex items-center justify-center"
-                          >
-                            <CheckCheck size={18} />
-                          </motion.div>
-                        </div>
-                      </motion.span>
-                    </motion.button>
-                  </div>
-                </motion.div>
-
-                {/* Card 3: Sincronización */}
-                <motion.div 
-                  style={{ y: card3Y }}
-                  className="absolute inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col"
-                >
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="font-black text-slate-900">Agenda Médica</div>
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 rounded-full bg-teal-500" />
-                      <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-1.5 mb-8">
-                    {Array.from({ length: 35 }).map((_, i) => (
-                      <div 
-                        key={i} 
-                        className="aspect-square rounded-md relative flex items-center justify-center bg-slate-50"
-                      >
-                        {i === 17 && (
-                          <div className="absolute inset-0 bg-teal-500 rounded-md shadow-lg shadow-teal-500/30 flex items-center justify-center">
-                            <CheckCircle2 size={12} className="text-white" />
-                          </div>
-                        )}
-                        <span className="text-[8px] font-bold text-slate-300">{i + 1}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-auto space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-600">
-                        <Calendar size={14} />
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sincronización</div>
-                        <div className="text-xs font-bold text-slate-700">Google Calendar Link</div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Card 4: WhatsApp Confirmación */}
-                <motion.div 
-                  style={{ y: card4Y }}
-                  className="absolute inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col items-center justify-center text-center"
-                >
-                  <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mb-6">
-                    <MessageSquare size={40} className="text-teal-600" />
-                  </div>
-                  <h3 className="text-2xl font-black text-slate-900 mb-2">¡Cita Confirmada!</h3>
-                  <p className="text-slate-500 mb-8">Hemos enviado los detalles a tu WhatsApp.</p>
-                  
-                  <div className="bg-teal-500 text-white px-6 py-4 rounded-2xl flex items-center gap-4 shadow-lg shadow-teal-500/20">
-                    <div className="font-bold text-sm">Notificación Enviada</div>
-                    <motion.div style={{ color: checkColor }}>
-                      <CheckCheck size={20} />
-                    </motion.div>
-                  </div>
-                </motion.div>
-
-                {/* Card 5: Side Doctor Preview */}
-                <motion.div 
-                  style={{ y: card5Y }}
-                  className="absolute inset-0 bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 p-8 flex flex-col overflow-hidden"
-                >
-                  {/* Scanline */}
-                  <motion.div 
-                    style={{ opacity: scanlineOpacity }}
-                    animate={{ top: ["10%", "90%", "10%"] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    className="absolute left-0 right-0 h-px bg-teal-400 shadow-[0_0_15px_rgba(20,184,166,1)] z-10"
-                  />
-
-                  <div className="flex items-center gap-3 mb-8">
-                    <div className="bg-teal-500/20 p-2 rounded-xl text-teal-400">
-                      <BrainCircuit size={24} />
-                    </div>
-                    <div className="font-bold text-white">Side Doctor AI</div>
-                  </div>
-
-                  <div className="space-y-6 relative z-0">
-                    <div className="flex gap-4">
-                      <div className="w-2 h-2 rounded-full bg-teal-500 mt-1.5" />
-                      <div className="flex-1">
-                        <div className="h-2 w-24 bg-slate-700 rounded-full mb-2" />
-                        <div className="h-2 w-full bg-slate-800 rounded-full" />
-                      </div>
-                    </div>
-                    
-                    <div className="mt-12 p-4 bg-teal-500/10 border border-teal-500/20 rounded-2xl">
-                      <div className="flex items-center gap-2 mb-2 text-teal-400">
-                        <Activity size={14} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">Analizando Historial...</span>
-                      </div>
-                      <div className="text-sm text-slate-300 italic">
-                        &quot;Detectado patrón de adherencia positiva. Sugerir mantenimiento de dosis.&quot;
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+                <SideDoctorCard 
+                  style={{ y: card5Y, zIndex: 50 }}
+                  scanlineOpacity={scanlineOpacity}
+                />
               </div>
             </div>
 
             {/* Texto Columna Sticky - Right */}
-            <div className="order-1 lg:order-2 relative h-auto lg:h-[500px] overflow-hidden w-full">
+            <div className="order-1 lg:order-2 relative h-auto lg:h-[500px] lg:overflow-hidden w-full">
               <motion.div 
                 style={{ y: isMobile ? 0 : textStripY }}
                 className="flex flex-col gap-32 lg:gap-0"
@@ -495,18 +559,21 @@ export function AnimatedLanding() {
                   <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Chatbot 24/7</h2>
                   <p className="mt-8 text-slate-500 text-xl leading-relaxed">Tus pacientes inician el proceso desde WhatsApp. Nuestra IA agenda citas sin intervención humana.</p>
                   
-                  {isMobile && (
-                    <div className="mt-12 bg-[#E5DDD5] rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col h-[350px]">
-                      <div className="bg-[#075E54] p-4 flex items-center gap-3">
-                        <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 font-bold text-[10px]">P</div>
-                        <div className="text-white font-bold text-sm">Asistente PlexusMD</div>
-                      </div>
-                      <div className="flex-1 p-4 space-y-4">
-                        <div className="max-w-[80%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm">¡Hola! ¿Deseas agendar?</div>
-                        <div className="max-w-[80%] bg-[#DCF8C6] p-3 rounded-2xl rounded-tr-none shadow-sm text-sm ml-auto">Sí, para mañana.</div>
-                      </div>
-                    </div>
-                  )}
+                  <div className="mt-12 block lg:hidden">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                    >
+                      <WhatsAppCard 
+                        isMobile 
+                        bubble1Scale={1}
+                        bubble2Scale={1}
+                        bubble3Scale={1}
+                      />
+                    </motion.div>
+                  </div>
                 </div>
 
                 {/* Bloque 2: Pago Seguro */}
@@ -515,13 +582,23 @@ export function AnimatedLanding() {
                   <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Stripe Checkout</h2>
                   <p className="mt-8 text-slate-500 text-xl leading-relaxed">Garantía de asistencia mediante link de pago automatizado. Reduce cancelaciones y asegura ingresos.</p>
                   
-                  {isMobile && (
-                    <div className="mt-12 bg-white rounded-3xl shadow-xl border border-slate-100 p-8">
-                      <div className="text-2xl font-black text-slate-900 mb-2">Consulta Especialista</div>
-                      <div className="text-3xl font-black text-teal-600 mb-6">$450.00 MXN</div>
-                      <div className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-center">Pagar Ahora</div>
-                    </div>
-                  )}
+                  <div className="mt-12 block lg:hidden">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                    >
+                      <PaymentCard 
+                        isMobile 
+                        shieldPulse={1}
+                        btnBg="#0f172a"
+                        btnText="Pagar Ahora"
+                        btnArrowOpacity={1}
+                        paymentDone={0}
+                      />
+                    </motion.div>
+                  </div>
                 </div>
 
                 {/* Bloque 3: Sincronización Automática */}
@@ -530,17 +607,16 @@ export function AnimatedLanding() {
                   <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Calendario Grid</h2>
                   <p className="mt-8 text-slate-500 text-xl leading-relaxed">Sincronización bidireccional inmediata con tu agenda y dispositivos. Control total en tiempo real.</p>
                   
-                  {isMobile && (
-                    <div className="mt-12 bg-white rounded-3xl shadow-xl border border-slate-100 p-6">
-                      <div className="grid grid-cols-7 gap-1.5">
-                        {Array.from({ length: 14 }).map((_, i) => (
-                          <div key={i} className={`aspect-square rounded-md ${i === 5 ? "bg-teal-500" : "bg-slate-50"} flex items-center justify-center`}>
-                            {i === 5 && <Check size={12} className="text-white" />}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <div className="mt-12 block lg:hidden">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                    >
+                      <CalendarCard isMobile />
+                    </motion.div>
+                  </div>
                 </div>
 
                 {/* Bloque 4: Confirmación Inmediata */}
@@ -549,14 +625,16 @@ export function AnimatedLanding() {
                   <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Checks Azules</h2>
                   <p className="mt-8 text-slate-500 text-xl leading-relaxed">Notificaciones de confirmación automáticas. El paciente sabe que su cita está lista y asegurada.</p>
                   
-                  {isMobile && (
-                    <div className="mt-12 bg-white rounded-3xl shadow-xl border border-slate-100 p-8 flex flex-col items-center">
-                      <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mb-4">
-                        <MessageSquare size={32} className="text-teal-600" />
-                      </div>
-                      <div className="font-black text-slate-900 italic">¡Cita Confirmada!</div>
-                    </div>
-                  )}
+                  <div className="mt-12 block lg:hidden">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                    >
+                      <ConfirmationCard isMobile checkColor="#3b82f6" />
+                    </motion.div>
+                  </div>
                 </div>
 
                 {/* Bloque 5: Side Doctor en Acción */}
@@ -567,16 +645,16 @@ export function AnimatedLanding() {
                     Análisis proactivo de riesgos y apoyo clínico en tiempo real durante cada consulta.
                   </p>
                   
-                  {isMobile && (
-                    <div className="mt-12 bg-slate-900 rounded-3xl shadow-xl border border-slate-800 p-8">
-                      <div className="flex items-center gap-3 mb-4">
-                        <BrainCircuit size={20} className="text-teal-400" />
-                        <span className="text-white font-bold text-sm">Side Doctor AI</span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-800 rounded-full mb-2" />
-                      <div className="h-2 w-2/3 bg-slate-800 rounded-full" />
-                    </div>
-                  )}
+                  <div className="mt-12 block lg:hidden">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                    >
+                      <SideDoctorCard isMobile scanlineOpacity={1} />
+                    </motion.div>
+                  </div>
                 </div>
               </motion.div>
             </div>
