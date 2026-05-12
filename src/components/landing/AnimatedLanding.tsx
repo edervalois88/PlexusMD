@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
+import { motion, useScroll, useTransform, MotionValue, cubicBezier } from "framer-motion";
 import { ArrowRight, ShieldCheck, Sparkles, BrainCircuit, ChevronRight, Calendar, MessageSquare, CheckCircle2, CheckCheck, Activity } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 
@@ -225,10 +225,10 @@ function SideDoctorCard({ style, isMobile, scanlineOpacity }: CardProps & { scan
 
 const liquidReveal = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
-    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+    transition: { duration: 0.8, ease: cubicBezier(0.22, 1, 0.36, 1) }
   }
 };
 
