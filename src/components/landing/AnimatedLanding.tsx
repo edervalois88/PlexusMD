@@ -49,22 +49,11 @@ export function AnimatedLanding() {
   const scanlineOpacity = useTransform(agendaProgress, [0.8, 0.82], [0, 1]);
 
   // Text Synchronization - 5 Stages
-  // Stage 1: 0% - 18%
-  const textOpacity1 = useTransform(agendaProgress, [0, 0.18, 0.22], [1, 1, 0]);
-  // Stage 2: 22% - 38%
-  const textOpacity2 = useTransform(agendaProgress, [0.18, 0.22, 0.38, 0.42], [0, 1, 1, 0]);
-  // Stage 3: 42% - 58%
-  const textOpacity3 = useTransform(agendaProgress, [0.38, 0.42, 0.58, 0.62], [0, 1, 1, 0]);
-  // Stage 4: 62% - 78%
-  const textOpacity4 = useTransform(agendaProgress, [0.58, 0.62, 0.78, 0.82], [0, 1, 1, 0]);
-  // Stage 5: 82% - 100%
-  const textOpacity5 = useTransform(agendaProgress, [0.78, 0.82, 1], [0, 1, 1]);
-
-  const textY1 = useTransform(agendaProgress, [0, 0.18, 0.22], [0, 0, -20]);
-  const textY2 = useTransform(agendaProgress, [0.18, 0.22, 0.38, 0.42], [20, 0, 0, -20]);
-  const textY3 = useTransform(agendaProgress, [0.38, 0.42, 0.58, 0.62], [20, 0, 0, -20]);
-  const textY4 = useTransform(agendaProgress, [0.58, 0.62, 0.78, 0.82], [20, 0, 0, -20]);
-  const textY5 = useTransform(agendaProgress, [0.78, 0.82, 1], [20, 0, 0]);
+  const textStripY = useTransform(
+    agendaProgress,
+    [0, 0.18, 0.22, 0.38, 0.42, 0.58, 0.62, 0.78, 0.82, 1],
+    ["0%", "0%", "-100%", "-100%", "-200%", "-200%", "-300%", "-300%", "-400%", "-400%"]
+  );
 
   // Liquid Animations Definitions
   const liquidStagger = {
@@ -505,57 +494,47 @@ export function AnimatedLanding() {
             </div>
 
             {/* Texto Columna Sticky - Right */}
-            <div className="lg:order-2 relative h-auto lg:h-[400px] flex flex-col gap-20 lg:block">
-              {/* Bloque 1: Agendado WA */}
+            <div className="lg:order-2 relative h-auto lg:h-[400px] overflow-hidden">
               <motion.div 
-                style={{ opacity: isMobile ? 1 : textOpacity1, y: isMobile ? 0 : textY1 }}
-                className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
+                style={{ y: isMobile ? 0 : textStripY }}
+                className="flex flex-col gap-20 lg:gap-0"
               >
-                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 1: Agendado WA</span>
-                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Chatbot 24/7</h2>
-                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Tus pacientes inician el proceso desde WhatsApp. Nuestra IA agenda citas sin intervención humana.</p>
-              </motion.div>
+                {/* Bloque 1: Agendado WA */}
+                <div className="relative h-auto lg:h-[400px] flex flex-col justify-center">
+                  <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 1: Agendado WA</span>
+                  <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Chatbot 24/7</h2>
+                  <p className="mt-8 text-slate-500 text-xl leading-relaxed">Tus pacientes inician el proceso desde WhatsApp. Nuestra IA agenda citas sin intervención humana.</p>
+                </div>
 
-              {/* Bloque 2: Pago Seguro */}
-              <motion.div 
-                style={{ opacity: isMobile ? 1 : textOpacity2, y: isMobile ? 0 : textY2 }}
-                className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
-              >
-                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 2: Pago Seguro</span>
-                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Stripe Checkout</h2>
-                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Garantía de asistencia mediante link de pago automatizado. Reduce cancelaciones y asegura ingresos.</p>
-              </motion.div>
+                {/* Bloque 2: Pago Seguro */}
+                <div className="relative h-auto lg:h-[400px] flex flex-col justify-center">
+                  <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 2: Pago Seguro</span>
+                  <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Stripe Checkout</h2>
+                  <p className="mt-8 text-slate-500 text-xl leading-relaxed">Garantía de asistencia mediante link de pago automatizado. Reduce cancelaciones y asegura ingresos.</p>
+                </div>
 
-              {/* Bloque 3: Sincronización Automática */}
-              <motion.div 
-                style={{ opacity: isMobile ? 1 : textOpacity3, y: isMobile ? 0 : textY3 }}
-                className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
-              >
-                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 3: Sincronización</span>
-                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Calendario Grid</h2>
-                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Sincronización bidireccional inmediata con tu agenda y dispositivos. Control total en tiempo real.</p>
-              </motion.div>
+                {/* Bloque 3: Sincronización Automática */}
+                <div className="relative h-auto lg:h-[400px] flex flex-col justify-center">
+                  <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 3: Sincronización</span>
+                  <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Calendario Grid</h2>
+                  <p className="mt-8 text-slate-500 text-xl leading-relaxed">Sincronización bidireccional inmediata con tu agenda y dispositivos. Control total en tiempo real.</p>
+                </div>
 
-              {/* Bloque 4: Confirmación Inmediata */}
-              <motion.div 
-                style={{ opacity: isMobile ? 1 : textOpacity4, y: isMobile ? 0 : textY4 }}
-                className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
-              >
-                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 4: Confirmación</span>
-                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Checks Azules</h2>
-                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Notificaciones de confirmación automáticas. El paciente sabe que su cita está lista y asegurada.</p>
-              </motion.div>
+                {/* Bloque 4: Confirmación Inmediata */}
+                <div className="relative h-auto lg:h-[400px] flex flex-col justify-center">
+                  <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 4: Confirmación</span>
+                  <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Checks Azules</h2>
+                  <p className="mt-8 text-slate-500 text-xl leading-relaxed">Notificaciones de confirmación automáticas. El paciente sabe que su cita está lista y asegurada.</p>
+                </div>
 
-              {/* Bloque 5: Side Doctor en Acción */}
-              <motion.div 
-                style={{ opacity: isMobile ? 1 : textOpacity5, y: isMobile ? 0 : textY5 }}
-                className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
-              >
-                <span className={`${isMobile ? "text-teal-600" : "text-teal-400"} font-bold tracking-widest uppercase text-sm`}>Paso 5: Inteligencia Clínica</span>
-                <h2 className={`text-5xl lg:text-7xl font-black mt-4 leading-tight ${isMobile ? "text-slate-900" : "text-white"}`}>Side Doctor</h2>
-                <p className={`mt-8 ${isMobile ? "text-slate-500" : "text-white"} text-xl leading-relaxed ${!isMobile && "opacity-80"}`}>
-                  Análisis proactivo de riesgos y apoyo clínico en tiempo real durante cada consulta.
-                </p>
+                {/* Bloque 5: Side Doctor en Acción */}
+                <div className="relative h-auto lg:h-[400px] flex flex-col justify-center">
+                  <span className={`${isMobile ? "text-teal-600" : "text-teal-400"} font-bold tracking-widest uppercase text-sm`}>Paso 5: Inteligencia Clínica</span>
+                  <h2 className={`text-5xl lg:text-7xl font-black mt-4 leading-tight ${isMobile ? "text-slate-900" : "text-white"}`}>Side Doctor</h2>
+                  <p className={`mt-8 ${isMobile ? "text-slate-500" : "text-white"} text-xl leading-relaxed ${!isMobile && "opacity-80"}`}>
+                    Análisis proactivo de riesgos y apoyo clínico en tiempo real durante cada consulta.
+                  </p>
+                </div>
               </motion.div>
             </div>
           </div>
