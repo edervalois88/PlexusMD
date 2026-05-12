@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, ShieldCheck, Sparkles, BrainCircuit, ChevronRight, Calendar, MessageSquare, CheckCircle2, CheckCheck, Activity } from "lucide-react";
+import { ArrowRight, ShieldCheck, Sparkles, BrainCircuit, ChevronRight, Calendar, MessageSquare, CheckCircle2, CheckCheck, Check, Activity } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 
 export function AnimatedLanding() {
@@ -37,6 +37,11 @@ export function AnimatedLanding() {
   const card4Y = useTransform(agendaProgress, [0.58, 0.62, 0.78, 0.82], ["120%", "0%", "0%", "-120%"]);
   const card5Y = useTransform(agendaProgress, [0.78, 0.82], ["120%", "0%"]);
 
+  // Bubble Scales for WA Chatbot
+  const bubble1Scale = useTransform(agendaProgress, [0, 0.05], [0, 1]);
+  const bubble2Scale = useTransform(agendaProgress, [0.08, 0.13], [0, 1]);
+  const bubble3Scale = useTransform(agendaProgress, [0.15, 0.2], [0, 1]);
+
   const agendaBg = useTransform(
     agendaProgress,
     [0, 0.2, 0.4, 0.6, 0.78, 0.82, 1.0],
@@ -45,6 +50,22 @@ export function AnimatedLanding() {
 
   // Micro-animations
   const shieldPulse = useTransform(agendaProgress, [0.25, 0.3, 0.35], [1, 1.3, 1]);
+  
+  const btnBg = useTransform(
+    agendaProgress, 
+    [0.3, 0.35, 0.38], 
+    ["#0f172a", "#1e293b", "#22c55e"] // slate-900 -> slate-800 -> green-500
+  );
+  
+  const btnText = useTransform(
+    agendaProgress,
+    [0.3, 0.35, 0.38],
+    ["Pagar Ahora", "Procesando...", "¡Pagado!"]
+  );
+
+  const paymentDone = useTransform(agendaProgress, [0.37, 0.38], [0, 1]);
+  const btnArrowOpacity = useTransform(agendaProgress, [0.35, 0.36], [1, 0]);
+
   const checkColor = useTransform(agendaProgress, [0.7, 0.75], ["#94a3b8", "#3b82f6"]);
   const scanlineOpacity = useTransform(agendaProgress, [0.8, 0.82], [0, 1]);
 
@@ -54,30 +75,6 @@ export function AnimatedLanding() {
     [0, 0.18, 0.22, 0.38, 0.42, 0.58, 0.62, 0.78, 0.82, 1],
     ["0%", "0%", "-100%", "-100%", "-200%", "-200%", "-300%", "-300%", "-400%", "-400%"]
   );
-
-  // Liquid Animations Definitions
-  const liquidStagger = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.12, delayChildren: 0.1 },
-    },
-  };
-
-  const liquidReveal: import("framer-motion").Variants = {
-    hidden: { opacity: 0, y: 40, filter: "blur(8px)" },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      filter: "blur(0px)",
-      transition: { 
-        type: "spring", 
-        stiffness: 70, 
-        damping: 20, 
-        mass: 1.5 
-      } 
-    },
-  };
 
   return (
     <div ref={containerRef} className="relative bg-[#F8FAFC] text-slate-900 font-sans selection:bg-teal-200 selection:text-teal-900">
@@ -280,14 +277,15 @@ export function AnimatedLanding() {
           className={`lg:sticky lg:top-0 lg:h-screen w-full flex items-center ${!isMobile && "overflow-hidden"} h-auto py-20 lg:py-0`}
         >
           <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col lg:grid lg:grid-cols-2 gap-20 items-center w-full">
-            {/* Visual Columna (Push Cards) - Left */}
-            <div className="relative order-2 lg:order-1 flex justify-center h-auto lg:h-[600px] w-full items-center">
-              <div className="relative w-full max-w-sm h-auto lg:h-[400px] flex flex-col gap-8 lg:block">
+            
+            {/* Visual Columna (Push Cards) - Left (Hidden on Mobile) */}
+            <div className="relative order-2 lg:order-1 hidden lg:flex justify-center h-[600px] w-full items-center">
+              <div className="relative w-full max-w-sm h-[400px]">
                 
                 {/* Card 1: WhatsApp Chatbot */}
                 <motion.div 
-                  style={{ y: isMobile ? 0 : card1Y }}
-                  className="relative lg:absolute lg:inset-0 bg-[#E5DDD5] rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col"
+                  style={{ y: card1Y }}
+                  className="absolute inset-0 bg-[#E5DDD5] rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col"
                 >
                   {/* WA Header */}
                   <div className="bg-[#075E54] p-4 flex items-center gap-3">
@@ -306,8 +304,7 @@ export function AnimatedLanding() {
                   <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                     {/* Incoming message */}
                     <motion.div 
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
+                      style={{ scale: bubble1Scale, originX: 0, originY: 0 }}
                       className="max-w-[80%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-800"
                     >
                       ¡Hola! Soy tu asistente. ¿Deseas agendar una cita?
@@ -315,9 +312,7 @@ export function AnimatedLanding() {
                     
                     {/* Outgoing message */}
                     <motion.div 
-                      initial={{ opacity: 0, x: 10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 }}
+                      style={{ scale: bubble2Scale, originX: 1, originY: 0 }}
                       className="max-w-[80%] bg-[#DCF8C6] p-3 rounded-2xl rounded-tr-none shadow-sm text-sm text-slate-800 ml-auto"
                     >
                       Sí, por favor. Para mañana a las 10am.
@@ -325,9 +320,7 @@ export function AnimatedLanding() {
 
                     {/* Incoming confirmation */}
                     <motion.div 
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 1 }}
+                      style={{ scale: bubble3Scale, originX: 0, originY: 0 }}
                       className="max-w-[80%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-800"
                     >
                       Perfecto. Recibirás un link de pago seguro en un momento.
@@ -337,8 +330,8 @@ export function AnimatedLanding() {
 
                 {/* Card 2: Pago Seguro */}
                 <motion.div 
-                  style={{ y: isMobile ? 0 : card2Y }}
-                  className="relative lg:absolute lg:inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col justify-center"
+                  style={{ y: card2Y }}
+                  className="absolute inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col justify-center"
                 >
                   <div className="mb-8">
                     <div className="flex items-center gap-2 text-slate-400 mb-2">
@@ -361,20 +354,35 @@ export function AnimatedLanding() {
                     </div>
                     
                     <motion.button 
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 relative overflow-hidden"
+                      style={{ backgroundColor: btnBg }}
+                      className="w-full text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 relative overflow-hidden"
                     >
-                      Pagar Ahora
-                      <ArrowRight size={18} />
+                      <motion.span className="flex items-center gap-2">
+                        <motion.span>{btnText}</motion.span>
+                        
+                        <div className="relative w-5 h-5">
+                          <motion.div 
+                            style={{ opacity: btnArrowOpacity }}
+                            className="absolute inset-0 flex items-center justify-center"
+                          >
+                            <ArrowRight size={18} />
+                          </motion.div>
+                          <motion.div 
+                            style={{ opacity: paymentDone, scale: paymentDone }}
+                            className="absolute inset-0 flex items-center justify-center"
+                          >
+                            <CheckCheck size={18} />
+                          </motion.div>
+                        </div>
+                      </motion.span>
                     </motion.button>
                   </div>
                 </motion.div>
 
                 {/* Card 3: Sincronización */}
                 <motion.div 
-                  style={{ y: isMobile ? 0 : card3Y }}
-                  className="relative lg:absolute lg:inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col"
+                  style={{ y: card3Y }}
+                  className="absolute inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col"
                 >
                   <div className="flex justify-between items-center mb-6">
                     <div className="font-black text-slate-900">Agenda Médica</div>
@@ -386,16 +394,14 @@ export function AnimatedLanding() {
 
                   <div className="grid grid-cols-7 gap-1.5 mb-8">
                     {Array.from({ length: 35 }).map((_, i) => (
-                      <div key={i} className="aspect-square bg-slate-50 rounded-md relative flex items-center justify-center">
+                      <div 
+                        key={i} 
+                        className="aspect-square rounded-md relative flex items-center justify-center bg-slate-50"
+                      >
                         {i === 17 && (
-                          <motion.div 
-                            initial={{ scale: 0, opacity: 0 }}
-                            whileInView={{ scale: 1, opacity: 1 }}
-                            transition={{ type: "spring", delay: 0.5 }}
-                            className="absolute inset-0 bg-teal-500 rounded-md shadow-lg shadow-teal-500/30 flex items-center justify-center"
-                          >
+                          <div className="absolute inset-0 bg-teal-500 rounded-md shadow-lg shadow-teal-500/30 flex items-center justify-center">
                             <CheckCircle2 size={12} className="text-white" />
-                          </motion.div>
+                          </div>
                         )}
                         <span className="text-[8px] font-bold text-slate-300">{i + 1}</span>
                       </div>
@@ -412,21 +418,13 @@ export function AnimatedLanding() {
                         <div className="text-xs font-bold text-slate-700">Google Calendar Link</div>
                       </div>
                     </div>
-                    <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: "0%" }}
-                        whileInView={{ width: "100%" }}
-                        transition={{ duration: 1.5 }}
-                        className="h-full bg-teal-500" 
-                      />
-                    </div>
                   </div>
                 </motion.div>
 
                 {/* Card 4: WhatsApp Confirmación */}
                 <motion.div 
-                  style={{ y: isMobile ? 0 : card4Y }}
-                  className="relative lg:absolute lg:inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col items-center justify-center text-center"
+                  style={{ y: card4Y }}
+                  className="absolute inset-0 bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col items-center justify-center text-center"
                 >
                   <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mb-6">
                     <MessageSquare size={40} className="text-teal-600" />
@@ -444,15 +442,15 @@ export function AnimatedLanding() {
 
                 {/* Card 5: Side Doctor Preview */}
                 <motion.div 
-                  style={{ y: isMobile ? 0 : card5Y }}
-                  className="relative lg:absolute lg:inset-0 bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 p-8 flex flex-col overflow-hidden"
+                  style={{ y: card5Y }}
+                  className="absolute inset-0 bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 p-8 flex flex-col overflow-hidden"
                 >
                   {/* Scanline */}
                   <motion.div 
                     style={{ opacity: scanlineOpacity }}
-                    animate={{ y: [40, 360, 40] }}
+                    animate={{ top: ["10%", "90%", "10%"] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    className="absolute top-0 left-0 right-0 h-px bg-teal-400 shadow-[0_0_15px_rgba(20,184,166,1)] z-10"
+                    className="absolute left-0 right-0 h-px bg-teal-400 shadow-[0_0_15px_rgba(20,184,166,1)] z-10"
                   />
 
                   <div className="flex items-center gap-3 mb-8">
@@ -470,13 +468,6 @@ export function AnimatedLanding() {
                         <div className="h-2 w-full bg-slate-800 rounded-full" />
                       </div>
                     </div>
-                    <div className="flex gap-4">
-                      <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5" />
-                      <div className="flex-1">
-                        <div className="h-2 w-32 bg-slate-700 rounded-full mb-2" />
-                        <div className="h-2 w-4/5 bg-slate-800 rounded-full" />
-                      </div>
-                    </div>
                     
                     <div className="mt-12 p-4 bg-teal-500/10 border border-teal-500/20 rounded-2xl">
                       <div className="flex items-center gap-2 mb-2 text-teal-400">
@@ -489,51 +480,103 @@ export function AnimatedLanding() {
                     </div>
                   </div>
                 </motion.div>
-
               </div>
             </div>
 
             {/* Texto Columna Sticky - Right */}
-            <div className="lg:order-2 relative h-auto lg:h-[400px] overflow-hidden">
+            <div className="order-1 lg:order-2 relative h-auto lg:h-[500px] overflow-hidden w-full">
               <motion.div 
                 style={{ y: isMobile ? 0 : textStripY }}
-                className="flex flex-col gap-20 lg:gap-0"
+                className="flex flex-col gap-32 lg:gap-0"
               >
                 {/* Bloque 1: Agendado WA */}
-                <div className="relative h-auto lg:h-[400px] flex flex-col justify-center">
+                <div className="relative h-auto lg:h-[500px] flex flex-col justify-center">
                   <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 1: Agendado WA</span>
                   <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Chatbot 24/7</h2>
                   <p className="mt-8 text-slate-500 text-xl leading-relaxed">Tus pacientes inician el proceso desde WhatsApp. Nuestra IA agenda citas sin intervención humana.</p>
+                  
+                  {isMobile && (
+                    <div className="mt-12 bg-[#E5DDD5] rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col h-[350px]">
+                      <div className="bg-[#075E54] p-4 flex items-center gap-3">
+                        <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 font-bold text-[10px]">P</div>
+                        <div className="text-white font-bold text-sm">Asistente PlexusMD</div>
+                      </div>
+                      <div className="flex-1 p-4 space-y-4">
+                        <div className="max-w-[80%] bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm">¡Hola! ¿Deseas agendar?</div>
+                        <div className="max-w-[80%] bg-[#DCF8C6] p-3 rounded-2xl rounded-tr-none shadow-sm text-sm ml-auto">Sí, para mañana.</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bloque 2: Pago Seguro */}
-                <div className="relative h-auto lg:h-[400px] flex flex-col justify-center">
+                <div className="relative h-auto lg:h-[500px] flex flex-col justify-center">
                   <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 2: Pago Seguro</span>
                   <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Stripe Checkout</h2>
                   <p className="mt-8 text-slate-500 text-xl leading-relaxed">Garantía de asistencia mediante link de pago automatizado. Reduce cancelaciones y asegura ingresos.</p>
+                  
+                  {isMobile && (
+                    <div className="mt-12 bg-white rounded-3xl shadow-xl border border-slate-100 p-8">
+                      <div className="text-2xl font-black text-slate-900 mb-2">Consulta Especialista</div>
+                      <div className="text-3xl font-black text-teal-600 mb-6">$450.00 MXN</div>
+                      <div className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-center">Pagar Ahora</div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bloque 3: Sincronización Automática */}
-                <div className="relative h-auto lg:h-[400px] flex flex-col justify-center">
+                <div className="relative h-auto lg:h-[500px] flex flex-col justify-center">
                   <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 3: Sincronización</span>
                   <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Calendario Grid</h2>
                   <p className="mt-8 text-slate-500 text-xl leading-relaxed">Sincronización bidireccional inmediata con tu agenda y dispositivos. Control total en tiempo real.</p>
+                  
+                  {isMobile && (
+                    <div className="mt-12 bg-white rounded-3xl shadow-xl border border-slate-100 p-6">
+                      <div className="grid grid-cols-7 gap-1.5">
+                        {Array.from({ length: 14 }).map((_, i) => (
+                          <div key={i} className={`aspect-square rounded-md ${i === 5 ? "bg-teal-500" : "bg-slate-50"} flex items-center justify-center`}>
+                            {i === 5 && <Check size={12} className="text-white" />}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bloque 4: Confirmación Inmediata */}
-                <div className="relative h-auto lg:h-[400px] flex flex-col justify-center">
+                <div className="relative h-auto lg:h-[500px] flex flex-col justify-center">
                   <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 4: Confirmación</span>
                   <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Checks Azules</h2>
                   <p className="mt-8 text-slate-500 text-xl leading-relaxed">Notificaciones de confirmación automáticas. El paciente sabe que su cita está lista y asegurada.</p>
+                  
+                  {isMobile && (
+                    <div className="mt-12 bg-white rounded-3xl shadow-xl border border-slate-100 p-8 flex flex-col items-center">
+                      <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mb-4">
+                        <MessageSquare size={32} className="text-teal-600" />
+                      </div>
+                      <div className="font-black text-slate-900 italic">¡Cita Confirmada!</div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bloque 5: Side Doctor en Acción */}
-                <div className="relative h-auto lg:h-[400px] flex flex-col justify-center">
+                <div className="relative h-auto lg:h-[500px] flex flex-col justify-center">
                   <span className={`${isMobile ? "text-teal-600" : "text-teal-400"} font-bold tracking-widest uppercase text-sm`}>Paso 5: Inteligencia Clínica</span>
                   <h2 className={`text-5xl lg:text-7xl font-black mt-4 leading-tight ${isMobile ? "text-slate-900" : "text-white"}`}>Side Doctor</h2>
                   <p className={`mt-8 ${isMobile ? "text-slate-500" : "text-white"} text-xl leading-relaxed ${!isMobile && "opacity-80"}`}>
                     Análisis proactivo de riesgos y apoyo clínico en tiempo real durante cada consulta.
                   </p>
+                  
+                  {isMobile && (
+                    <div className="mt-12 bg-slate-900 rounded-3xl shadow-xl border border-slate-800 p-8">
+                      <div className="flex items-center gap-3 mb-4">
+                        <BrainCircuit size={20} className="text-teal-400" />
+                        <span className="text-white font-bold text-sm">Side Doctor AI</span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-800 rounded-full mb-2" />
+                      <div className="h-2 w-2/3 bg-slate-800 rounded-full" />
+                    </div>
+                  )}
                 </div>
               </motion.div>
             </div>
