@@ -265,12 +265,12 @@ export function AnimatedLanding() {
   const yHero = useTransform(scrollYProgress, [0, 0.2], ["0%", "40%"]);
   const opacityHero = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
-  // Agenda Cards Transforms
-  const card1Y = useTransform(agendaProgress, [0, 0.18, 0.22], ["0%", "0%", "-120%"]);
-  const card2Y = useTransform(agendaProgress, [0.18, 0.22, 0.38, 0.42], ["120%", "0%", "0%", "-120%"]);
-  const card3Y = useTransform(agendaProgress, [0.38, 0.42, 0.58, 0.62], ["120%", "0%", "0%", "-120%"]);
-  const card4Y = useTransform(agendaProgress, [0.58, 0.62, 0.78, 0.82], ["120%", "0%", "0%", "-120%"]);
-  const card5Y = useTransform(agendaProgress, [0.78, 0.82], ["120%", "0%"]);
+  // Agenda Cards Transforms (synced with textStripY: -100% per block = 500px)
+  const card1Y = useTransform(agendaProgress, [0, 0.18, 0.22], ["0%", "0%", "-125%"]);
+  const card2Y = useTransform(agendaProgress, [0.18, 0.22, 0.38, 0.42], ["125%", "0%", "0%", "-125%"]);
+  const card3Y = useTransform(agendaProgress, [0.38, 0.42, 0.58, 0.62], ["125%", "0%", "0%", "-125%"]);
+  const card4Y = useTransform(agendaProgress, [0.58, 0.62, 0.78, 0.82], ["125%", "0%", "0%", "-125%"]);
+  const card5Y = useTransform(agendaProgress, [0.78, 0.82], ["125%", "0%"]);
 
   // Bubble Scales for WA Chatbot
   const bubble1Scale = useTransform(agendaProgress, [0, 0.05], [0, 1]);
