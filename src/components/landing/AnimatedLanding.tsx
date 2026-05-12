@@ -39,8 +39,8 @@ export function AnimatedLanding() {
 
   const agendaBg = useTransform(
     agendaProgress,
-    [0, 0.2, 0.4, 0.6, 0.8, 1.0],
-    ["#ffffff", "#f8fafc", "#f0fdfa", "#eff6ff", "#0f172a", "#0f172a"]
+    [0, 0.2, 0.4, 0.6, 0.78, 0.82, 1.0],
+    ["#ffffff", "#f8fafc", "#f0fdfa", "#eff6ff", "#eff6ff", "#0f172a", "#0f172a"]
   );
 
   // Micro-animations
@@ -49,22 +49,22 @@ export function AnimatedLanding() {
   const scanlineOpacity = useTransform(agendaProgress, [0.8, 0.82], [0, 1]);
 
   // Text Synchronization - 5 Stages
-  // Stage 1: 0% - 15%
-  const textOpacity1 = useTransform(agendaProgress, [0, 0.15, 0.18], [1, 1, 0]);
-  // Stage 2: 20% - 35%
-  const textOpacity2 = useTransform(agendaProgress, [0.17, 0.2, 0.35, 0.38], [0, 1, 1, 0]);
-  // Stage 3: 40% - 55%
-  const textOpacity3 = useTransform(agendaProgress, [0.37, 0.4, 0.55, 0.58], [0, 1, 1, 0]);
-  // Stage 4: 60% - 75%
-  const textOpacity4 = useTransform(agendaProgress, [0.57, 0.6, 0.75, 0.78], [0, 1, 1, 0]);
-  // Stage 5: 80% - 100%
-  const textOpacity5 = useTransform(agendaProgress, [0.77, 0.8, 1], [0, 1, 1]);
+  // Stage 1: 0% - 18%
+  const textOpacity1 = useTransform(agendaProgress, [0, 0.18, 0.22], [1, 1, 0]);
+  // Stage 2: 22% - 38%
+  const textOpacity2 = useTransform(agendaProgress, [0.18, 0.22, 0.38, 0.42], [0, 1, 1, 0]);
+  // Stage 3: 42% - 58%
+  const textOpacity3 = useTransform(agendaProgress, [0.38, 0.42, 0.58, 0.62], [0, 1, 1, 0]);
+  // Stage 4: 62% - 78%
+  const textOpacity4 = useTransform(agendaProgress, [0.58, 0.62, 0.78, 0.82], [0, 1, 1, 0]);
+  // Stage 5: 82% - 100%
+  const textOpacity5 = useTransform(agendaProgress, [0.78, 0.82, 1], [0, 1, 1]);
 
-  const textY1 = useTransform(agendaProgress, [0, 0.15, 0.18], [0, 0, -20]);
-  const textY2 = useTransform(agendaProgress, [0.17, 0.2, 0.35, 0.38], [20, 0, 0, -20]);
-  const textY3 = useTransform(agendaProgress, [0.37, 0.4, 0.55, 0.58], [20, 0, 0, -20]);
-  const textY4 = useTransform(agendaProgress, [0.57, 0.6, 0.75, 0.78], [20, 0, 0, -20]);
-  const textY5 = useTransform(agendaProgress, [0.77, 0.8, 1], [20, 0, 0]);
+  const textY1 = useTransform(agendaProgress, [0, 0.18, 0.22], [0, 0, -20]);
+  const textY2 = useTransform(agendaProgress, [0.18, 0.22, 0.38, 0.42], [20, 0, 0, -20]);
+  const textY3 = useTransform(agendaProgress, [0.38, 0.42, 0.58, 0.62], [20, 0, 0, -20]);
+  const textY4 = useTransform(agendaProgress, [0.58, 0.62, 0.78, 0.82], [20, 0, 0, -20]);
+  const textY5 = useTransform(agendaProgress, [0.78, 0.82, 1], [20, 0, 0]);
 
   // Liquid Animations Definitions
   const liquidStagger = {
@@ -288,7 +288,7 @@ export function AnimatedLanding() {
       <section ref={agendaRef} className="relative h-auto lg:h-[500vh] bg-white transition-colors duration-500">
         <motion.div 
           style={{ backgroundColor: isMobile ? "#ffffff" : agendaBg }}
-          className="lg:sticky lg:top-0 lg:h-screen w-full flex items-center overflow-hidden h-auto py-20 lg:py-0"
+          className={`lg:sticky lg:top-0 lg:h-screen w-full flex items-center ${!isMobile && "overflow-hidden"} h-auto py-20 lg:py-0`}
         >
           <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col lg:grid lg:grid-cols-2 gap-20 items-center w-full">
             {/* Visual Columna (Push Cards) - Left */}
@@ -461,9 +461,9 @@ export function AnimatedLanding() {
                   {/* Scanline */}
                   <motion.div 
                     style={{ opacity: scanlineOpacity }}
-                    animate={{ top: ["10%", "90%", "10%"] }}
+                    animate={{ y: [40, 360, 40] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    className="absolute left-0 right-0 h-px bg-teal-400 shadow-[0_0_15px_rgba(20,184,166,1)] z-10"
+                    className="absolute top-0 left-0 right-0 h-px bg-teal-400 shadow-[0_0_15px_rgba(20,184,166,1)] z-10"
                   />
 
                   <div className="flex items-center gap-3 mb-8">
@@ -506,54 +506,56 @@ export function AnimatedLanding() {
 
             {/* Texto Columna Sticky - Right */}
             <div className="lg:order-2 relative h-auto lg:h-[400px] flex flex-col gap-20 lg:block">
-              {/* Bloque 1: Disponibilidad */}
+              {/* Bloque 1: Agendado WA */}
               <motion.div 
                 style={{ opacity: isMobile ? 1 : textOpacity1, y: isMobile ? 0 : textY1 }}
                 className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
               >
-                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 1: Disponibilidad</span>
-                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Agenda Abierta</h2>
-                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Los pacientes eligen el mejor horario según tu configuración en tiempo real, sin intermediarios.</p>
+                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 1: Agendado WA</span>
+                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Chatbot 24/7</h2>
+                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Tus pacientes inician el proceso desde WhatsApp. Nuestra IA agenda citas sin intervención humana.</p>
               </motion.div>
 
-              {/* Bloque 2: WhatsApp */}
+              {/* Bloque 2: Pago Seguro */}
               <motion.div 
                 style={{ opacity: isMobile ? 1 : textOpacity2, y: isMobile ? 0 : textY2 }}
                 className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
               >
-                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 2: Recordatorios</span>
-                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Confirmación WA</h2>
-                <p className="mt-8 text-slate-500 text-xl leading-relaxed">PlexusMD envía recordatorios automáticos vía WhatsApp Business, reduciendo el ausentismo drásticamente.</p>
+                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 2: Pago Seguro</span>
+                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Stripe Checkout</h2>
+                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Garantía de asistencia mediante link de pago automatizado. Reduce cancelaciones y asegura ingresos.</p>
               </motion.div>
 
-              {/* Bloque 3: Sincronización */}
+              {/* Bloque 3: Sincronización Automática */}
               <motion.div 
                 style={{ opacity: isMobile ? 1 : textOpacity3, y: isMobile ? 0 : textY3 }}
                 className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
               >
                 <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 3: Sincronización</span>
-                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Éxito Total</h2>
-                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Tu dashboard se actualiza al instante. Todo listo para recibir al paciente sin fricciones.</p>
+                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Calendario Grid</h2>
+                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Sincronización bidireccional inmediata con tu agenda y dispositivos. Control total en tiempo real.</p>
               </motion.div>
 
-              {/* Bloque 4: Análisis AI */}
+              {/* Bloque 4: Confirmación Inmediata */}
               <motion.div 
                 style={{ opacity: isMobile ? 1 : textOpacity4, y: isMobile ? 0 : textY4 }}
                 className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
               >
-                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 4: Análisis AI</span>
-                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Side Doctor AI</h2>
-                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Side Doctor analiza el historial y sugiere acciones clínicas proactivas antes de la consulta.</p>
+                <span className="text-teal-600 font-bold tracking-widest uppercase text-sm">Paso 4: Confirmación</span>
+                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-slate-900">Checks Azules</h2>
+                <p className="mt-8 text-slate-500 text-xl leading-relaxed">Notificaciones de confirmación automáticas. El paciente sabe que su cita está lista y asegurada.</p>
               </motion.div>
 
-              {/* Bloque 5: Fidelización */}
+              {/* Bloque 5: Side Doctor en Acción */}
               <motion.div 
                 style={{ opacity: isMobile ? 1 : textOpacity5, y: isMobile ? 0 : textY5 }}
                 className="relative lg:absolute lg:inset-0 flex flex-col justify-center"
               >
-                <span className="text-teal-400 font-bold tracking-widest uppercase text-sm">Paso 5: Fidelización</span>
-                <h2 className="text-5xl lg:text-7xl font-black mt-4 leading-tight text-white">Cuidado Continuo</h2>
-                <p className="mt-8 text-slate-400 text-xl leading-relaxed">Seguimiento automatizado post-consulta para asegurar la adherencia al tratamiento.</p>
+                <span className={`${isMobile ? "text-teal-600" : "text-teal-400"} font-bold tracking-widest uppercase text-sm`}>Paso 5: Inteligencia Clínica</span>
+                <h2 className={`text-5xl lg:text-7xl font-black mt-4 leading-tight ${isMobile ? "text-slate-900" : "text-white"}`}>Side Doctor</h2>
+                <p className={`mt-8 ${isMobile ? "text-slate-500" : "text-white"} text-xl leading-relaxed ${!isMobile && "opacity-80"}`}>
+                  Análisis proactivo de riesgos y apoyo clínico en tiempo real durante cada consulta.
+                </p>
               </motion.div>
             </div>
           </div>
