@@ -139,4 +139,14 @@ export class GoogleCalendarService {
       htmlLink: response.data.htmlLink ?? null,
     };
   }
+
+  async deleteEvent(eventId: string) {
+    const auth = getCalendarAuth();
+    const calendar = google.calendar({ version: "v3", auth });
+
+    await calendar.events.delete({
+      calendarId: this.calendarId,
+      eventId,
+    });
+  }
 }

@@ -36,6 +36,9 @@ model Organization {
   users             User[]
   patients          Patient[]
   appointments      Appointment[]
+  whatsappConversations WhatsappConversation[]
+  whatsappProcessedMessages WhatsappProcessedMessage[]
+  whatsappMessageStatuses WhatsappMessageStatus[]
   settings          OrganizationSettings?
   auditLogs         AuditLog[]
 
@@ -118,6 +121,7 @@ model Patient {
   organization_id      String
   organization         Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
   full_name            String
+  phone_number         String?
   curp                 String?      // or ID
   birth_date           DateTime?
   medical_history_json Json?        @default("{}")
@@ -128,6 +132,58 @@ model Patient {
   updatedAt            DateTime     @updatedAt
 
   @@index([organization_id, full_name])
+  @@index([organization_id, phone_number])
+}
+
+model WhatsappConversation {
+  id              String       @id @default(uuid())
+  organization_id String
+  organization    Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  patient_phone   String
+  last_slots      Json?        @default("[]")
+  last_intent     String?
+  status          String       @default("ACTIVE")
+  current_state   String       @default("IDLE")
+  last_message_at DateTime     @default(now())
+  opt_in_at       DateTime?
+  opted_out_at    DateTime?
+  handoff_requested_at DateTime?
+  last_handoff_reason  String?
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([organization_id, patient_phone])
+  @@index([organization_id, updatedAt])
+}
+
+model WhatsappProcessedMessage {
+  id                  String        @id @default(uuid())
+  provider_message_id String        @unique
+  organization_id     String?
+  organization        Organization? @relation(fields: [organization_id], references: [id], onDelete: SetNull)
+  patient_phone       String?
+  action              String?
+
+  createdAt           DateTime      @default(now())
+
+  @@index([organization_id, createdAt])
+}
+
+model WhatsappMessageStatus {
+  id                  String        @id @default(uuid())
+  provider_message_id String
+  organization_id     String?
+  organization        Organization? @relation(fields: [organization_id], references: [id], onDelete: SetNull)
+  recipient_id        String?
+  status              String
+  provider_timestamp  DateTime?
+  raw_payload         Json?         @default("{}")
+
+  createdAt           DateTime      @default(now())
+
+  @@unique([provider_message_id, status])
+  @@index([organization_id, createdAt])
 }
 
 model Appointment {
@@ -145,6 +201,8 @@ model Appointment {
   status          AppointmentStatus @default(SCHEDULED)
   payment_status  PaymentStatus     @default(PENDING)
   google_event_id String?
+  reservation_expires_at DateTime?
+  cancellation_reason String?
 
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt

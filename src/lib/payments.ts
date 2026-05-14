@@ -1,11 +1,13 @@
 import { stripe } from "@/lib/stripe";
 
 export const createAppointmentPaymentLink = async ({
+  appointmentId,
   organizationId,
   patientPhone,
   slotStart,
   stripeAccountId,
 }: {
+  appointmentId?: string | null;
   organizationId: string;
   patientPhone: string;
   slotStart: string;
@@ -27,6 +29,7 @@ export const createAppointmentPaymentLink = async ({
       },
     ],
     metadata: {
+      ...(appointmentId ? { appointmentId } : {}),
       organizationId,
       patientPhone,
       slotStart,

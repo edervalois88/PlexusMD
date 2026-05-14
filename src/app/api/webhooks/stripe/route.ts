@@ -3,6 +3,21 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 
+const resolveAppointmentId = async (stripe: Stripe, session: Stripe.Checkout.Session) => {
+  if (session.metadata?.appointmentId) {
+    return session.metadata.appointmentId;
+  }
+
+  const paymentLinkId = typeof session.payment_link === "string" ? session.payment_link : session.payment_link?.id;
+
+  if (!paymentLinkId) {
+    return null;
+  }
+
+  const paymentLink = await stripe.paymentLinks.retrieve(paymentLinkId);
+  return paymentLink.metadata?.appointmentId ?? null;
+};
+
 export async function POST(req: Request) {
   // Inicializar Stripe solo en tiempo de ejecución
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -32,13 +47,16 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const appointmentId = session.metadata?.appointmentId;
+    const appointmentId = await resolveAppointmentId(stripe, session);
 
     if (appointmentId) {
       try {
         await prisma.appointment.update({
           where: { id: appointmentId },
-          data: { payment_status: "PAID" },
+          data: {
+            payment_status: "PAID",
+            reservation_expires_at: null,
+          },
         });
         console.log(`Appointment ${appointmentId} marked as PAID`);
       } catch (error) {
